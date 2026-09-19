@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Clock, Salad, Soup, Users, UtensilsCrossed, X } from "lucide-react";
 import { apiGet } from "@/lib/api";
@@ -22,7 +22,6 @@ export default function StationView({ station: fixedStation }: { station?: strin
   const station = fixedStation ?? params.station ?? "cook";
   const date = todayIso();
   const [open, setOpen] = useState<CookEntry | null>(null);
-  const [servings, setServings] = useState(2);
   const [doneSteps, setDoneSteps] = useState<Record<string, boolean>>({});
 
   const menu = useQuery({
@@ -33,7 +32,7 @@ export default function StationView({ station: fixedStation }: { station?: strin
   });
 
   useEffect(() => {
-    if (open) setServings(open.servings);
+    setDoneSteps({});
   }, [open]);
 
   const isSalad = station === "salad";
@@ -127,15 +126,6 @@ export default function StationView({ station: fixedStation }: { station?: strin
             </p>
           </div>
         )}
-
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-4 text-sm">
-          <Link to={isSalad ? "/cook" : "/salad"} data-testid="station-switch-link" className="font-medium text-[#D0663C] hover:underline">
-            {isSalad ? "Kitchen station →" : "Salad station →"}
-          </Link>
-          <Link to="/login" data-testid="station-login-link" className="font-medium text-[#5E6A5C] hover:underline">
-            Family sign in
-          </Link>
-        </div>
       </div>
 
       {/* recipe detail */}
@@ -162,22 +152,14 @@ export default function StationView({ station: fixedStation }: { station?: strin
                 <span className="flex items-center gap-2 text-sm font-semibold text-[#45382A]">
                   <Users className="h-4 w-4" /> Servings
                 </span>
-                <div className="flex items-center gap-3">
-                  <Button variant="outline" size="icon-xs" data-testid="station-servings-minus" onClick={() => setServings((n) => Math.max(1, n - 1))}>
-                    −
-                  </Button>
-                  <span className="font-display-num w-8 text-center text-lg font-bold" data-testid="station-servings-value">
-                    {servings}
-                  </span>
-                  <Button variant="outline" size="icon-xs" data-testid="station-servings-plus" onClick={() => setServings((n) => n + 1)}>
-                    +
-                  </Button>
-                </div>
+                <span className="font-display-num text-lg font-bold text-[#45382A]" data-testid="station-servings-value">
+                  {open.servings}
+                </span>
               </div>
 
               <div className="mt-4">
                 <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">Ingredients</p>
-                <ScaledIngredients recipe={open.recipe} servings={servings} />
+                <ScaledIngredients recipe={open.recipe} servings={open.servings} />
               </div>
 
               <div className="mt-4">

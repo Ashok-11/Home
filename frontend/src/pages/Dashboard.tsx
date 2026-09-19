@@ -38,7 +38,7 @@ export default function Dashboard() {
   const today = todayIso();
 
   const [section, setSection] = useState<Section>("finance");
-  const [view, setView] = useState<View>("combined");
+  const [view, setView] = useState<View>("personal");
   const [scope, setScope] = useState<Scope>("month");
   const [monthKey, setMonthKey] = useState(currentMonth());
   const [fyKey, setFyKey] = useState(fyOf(today));
@@ -80,11 +80,11 @@ export default function Dashboard() {
   const budgetPct = d && d.budget > 0 ? (d.expense_total / d.budget) * 100 : 0;
 
   const incomeCards = [
-    { label: "Ashok's Income", value: d?.income.ashok ?? 0, icon: Wallet, testid: "dashboard-income-ashok" },
-    { label: "Manasa's Income", value: d?.income.manasa ?? 0, icon: PiggyBank, testid: "dashboard-income-manasa" },
-    { label: "Rental Income", value: d?.income.rental ?? 0, icon: Building2, testid: "dashboard-income-rental" },
-    { label: "Other Sources", value: d?.income.other ?? 0, icon: Banknote, testid: "dashboard-income-other" },
-  ].filter((c) => view === "combined" || c.value > 0 || !["Ashok's Income", "Manasa's Income"].includes(c.label) || c.label.startsWith(me.data?.name ?? ""));
+    { label: "Ashok's Income", member: "Ashok", value: d?.income.ashok ?? 0, icon: Wallet, testid: "dashboard-income-ashok" },
+    { label: "Manasa's Income", member: "Manasa", value: d?.income.manasa ?? 0, icon: PiggyBank, testid: "dashboard-income-manasa" },
+    { label: "Rental Income", member: "Common", value: d?.income.rental ?? 0, icon: Building2, testid: "dashboard-income-rental" },
+    { label: "Other Sources", member: "Common", value: d?.income.other ?? 0, icon: Banknote, testid: "dashboard-income-other" },
+  ].filter((c) => view === "combined" || c.member === "Common" || c.member === me.data?.name);
 
   return (
     <div className="relative">
@@ -192,8 +192,10 @@ export default function Dashboard() {
                 {(d?.income_by_source ?? []).length > 0 && (
                   <ul className="mt-3 grid gap-1.5" data-testid="dashboard-income-sources">
                     {(d?.income_by_source ?? []).map((row) => (
-                      <li key={`${row.source}-${row.source_type}`} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-1.5 text-sm">
-                        <span className="truncate">{row.source}</span>
+                      <li key={`${row.source}-${row.source_type}-${row.member}`} className="flex items-center justify-between rounded-lg bg-muted/50 px-3 py-1.5 text-sm">
+                        <span className="truncate">
+                          {row.source} <span className="text-xs text-muted-foreground">· {row.member}</span>
+                        </span>
                         <span className="font-display-num font-semibold">{formatINR(row.total)}</span>
                       </li>
                     ))}

@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { CreditCard, Plus, Trash2, Wallet } from "lucide-react";
-import { apiDelete, apiGet, apiPost } from "@/lib/api";
+import { CreditCard, Pencil, Plus, Trash2, Wallet } from "lucide-react";
+import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api";
 import { CARD_TYPES, CARD_TYPE_LABELS, MEMBERS } from "@/lib/constants";
 import { formatINR } from "@/lib/format";
 import type { Card as PaymentCard, DashboardData } from "@/lib/types";
@@ -37,6 +37,7 @@ const GRADIENTS = [
 export default function Cards() {
   const qc = useQueryClient();
   const [open, setOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState("");
   const [bank, setBank] = useState("");
   const [last4, setLast4] = useState("");
@@ -53,18 +54,42 @@ export default function Cards() {
   const membersFor = (id: string) => dash.data?.cards.find((c) => c.card_id === id)?.by_member ?? {};
 
   const create = useMutation({
-    mutationFn: () => apiPost<PaymentCard>("/cards", { name, bank, last4, type, owner }),
+    mutationFn: () => {
+      const body = { name, bank, last4, type, owner };
+      return editingId ? apiPut<PaymentCard>(`/cards/${editingId}`, body) : apiPost<PaymentCard>("/cards", body);
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cards"] });
       qc.invalidateQueries({ queryKey: ["dashboard"] });
       setOpen(false);
+      toast.success(editingId ? "Source updated" : "Payment source added");
+      setEditingId(null);
       setName("");
       setBank("");
       setLast4("");
-      toast.success("Payment source added");
     },
-    onError: (err) => toast.error(`Could not add: ${err.message}`),
+    onError: (err) => toast.error(`Could not save: ${err.message}`),
   });
+
+  const openCreate = () => {
+    setEditingId(null);
+    setName("");
+    setBank("");
+    setLast4("");
+    setType("credit");
+    setOwner("Common");
+    setOpen(true);
+  };
+
+  const openEdit = (c: PaymentCard) => {
+    setEditingId(c.id);
+    setName(c.name);
+    setBank(c.bank);
+    setLast4(c.last4);
+    setType(c.type);
+    setOwner(c.owner);
+    setOpen(true);
+  };
 
   const remove = useMutation({
     mutationFn: (id: string) => apiDelete<void>(`/cards/${id}`),
@@ -82,7 +107,7 @@ export default function Cards() {
         title="Cards & Money Sources"
         subtitle="Keep every card, UPI handle and cash pocket on record — and see this month's spend on each."
         actions={
-          <Button data-testid="cards-add-button" onClick={() => setOpen(true)} className="bg-[#D0663C] text-white hover:bg-[#B8552F]">
+          <Button data-testid="cards-add-button" onClick={openCreate} className="bg-[#D0663C] text-white hover:bg-[#B8552F]">
             <Plus className="h-4 w-4" /> Add source
           </Button>
         }
@@ -144,15 +169,26 @@ export default function Cards() {
                 </div>
               )}
 
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                data-testid="card-delete-button"
-                onClick={() => remove.mutate(c.id)}
-                className="absolute bottom-3 right-3 text-white/50 hover:bg-white/10 hover:text-white"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
+              <div className="absolute bottom-3 right-3 flex items-center gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  data-testid="card-edit-button"
+                  onClick={() => openEdit(c)}
+                  className="text-white/60 hover:bg-white/10 hover:text-white"
+                >
+                  <Pencil className="h-3.5 w-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  data-testid="card-delete-button"
+                  onClick={() => remove.mutate(c.id)}
+                  className="text-white/50 hover:bg-white/10 hover:text-white"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
           );
         })}
@@ -168,7 +204,7 @@ export default function Cards() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="font-heading">Add money source</DialogTitle>
+            <DialogTitle className="font-heading">{editingId ? "Edit money source" : "Add money source"}</DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-2">
             <div className="grid gap-1.5">
@@ -230,7 +266,7 @@ export default function Cards() {
               Cancel
             </Button>
             <Button data-testid="card-save-button" disabled={!name || create.isPending} onClick={() => create.mutate()} className="bg-[#D0663C] text-white hover:bg-[#B8552F]">
-              Add source
+              {editingId ? "Save changes" : "Add source"}
             </Button>
           </DialogFooter>
         </DialogContent>

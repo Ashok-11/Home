@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Plus, Target, Trash2, TrendingUp } from "lucide-react";
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api";
 import { currentMonth, formatINR, monthLabel, todayIso } from "@/lib/format";
-import type { FinanceSummary, Income } from "@/lib/types";
+import type { Budget as BudgetRow, FinanceSummary, Income } from "@/lib/types";
+import { MEMBERS } from "@/lib/constants";
 import { BackgroundBlobs, PageHeader } from "@/components/decor";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,8 +15,9 @@ import { Label } from "@/components/ui/label";
 export default function Budget() {
   const qc = useQueryClient();
   const [month, setMonth] = useState(currentMonth());
-  const [budgetInput, setBudgetInput] = useState("");
+  const [budgetInput, setBudgetInput] = useState<Record<string, string>>({});
   const [source, setSource] = useState("");
+  const [member, setMember] = useState("Common");
   const [incomeAmount, setIncomeAmount] = useState("");
 
   const summary = useQuery({
@@ -27,22 +29,36 @@ export default function Budget() {
     queryFn: () => apiGet<Income[]>(`/incomes?month=${month}`),
   });
 
+  const budgets = useQuery({
+    queryKey: ["budgets", month],
+    queryFn: () => apiGet<BudgetRow[]>(`/budgets?month=${month}`),
+  });
+
   const saveBudget = useMutation({
-    mutationFn: () => apiPut("/budget", { month, amount: Number(budgetInput) }),
-    onSuccess: () => {
+    mutationFn: (m: string) => apiPut("/budget", { month, amount: Number(budgetInput[m]), member: m }),
+    onSuccess: (_res, m) => {
+      qc.invalidateQueries({ queryKey: ["budgets", month] });
       qc.invalidateQueries({ queryKey: ["summary", month] });
-      toast.success("Budget saved");
-      setBudgetInput("");
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
+      toast.success(`${m} budget saved`);
+      setBudgetInput((b) => ({ ...b, [m]: "" }));
     },
     onError: (err) => toast.error(`Could not save budget: ${err.message}`),
   });
 
   const addIncome = useMutation({
     mutationFn: () =>
-      apiPost<Income>("/incomes", { source, amount: Number(incomeAmount), date: `${month}-01` }),
+      apiPost<Income>("/incomes", {
+        source,
+        member,
+        source_type: member === "Common" ? "other" : member.toLowerCase(),
+        amount: Number(incomeAmount),
+        date: `${month}-01`,
+      }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["incomes", month] });
       qc.invalidateQueries({ queryKey: ["summary", month] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
       setSource("");
       setIncomeAmount("");
       toast.success("Income added");
@@ -59,8 +75,10 @@ export default function Budget() {
   });
 
   const s = summary.data;
+  const budgetFor = (m: string) => (budgets.data ?? []).filter((b) => b.member === m).reduce((t, b) => t + b.amount, 0);
+  const budgetTotal = (budgets.data ?? []).reduce((t, b) => t + b.amount, 0);
   const maxCategory = Math.max(1, ...(s?.by_category ?? []).map((c) => c.total));
-  const spentPct = s && s.budget > 0 ? Math.min((s.expense_total / s.budget) * 100, 100) : 0;
+  const spentPct = budgetTotal > 0 ? Math.min(((s?.expense_total ?? 0) / budgetTotal) * 100, 100) : 0;
   const savings = (s?.income_total ?? 0) - (s?.expense_total ?? 0);
 
   return (
@@ -88,35 +106,40 @@ export default function Budget() {
       <div className="glass rounded-2xl p-6" data-testid="budget-gauge-card">
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Monthly budget</p>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-muted-foreground">Monthly budget (all members)</p>
             <p className="font-display-num mt-1 text-4xl font-semibold" data-testid="budget-amount-display">
-              {formatINR(s?.budget ?? 0)}
+              {formatINR(budgetTotal)}
             </p>
           </div>
-          <div className="flex items-end gap-2">
-            <div className="grid gap-1">
-              <Label htmlFor="budget-input" className="text-xs">
-                Set budget (₹)
-              </Label>
-              <Input
-                id="budget-input"
-                data-testid="budget-amount-input"
-                type="number"
-                min="0"
-                value={budgetInput}
-                onChange={(e) => setBudgetInput(e.target.value)}
-                placeholder={String(Math.round(s?.budget ?? 0) || 60000)}
-                className="w-36"
-              />
-            </div>
-            <Button
-              data-testid="budget-save-button"
-              disabled={!budgetInput || saveBudget.isPending}
-              onClick={() => saveBudget.mutate()}
-              className="bg-[#1E4030] text-white hover:bg-[#23492F]"
-            >
-              <Target className="h-4 w-4" /> Save
-            </Button>
+          <div className="grid w-full gap-2 sm:w-auto sm:grid-cols-3" data-testid="budget-member-inputs">
+            {MEMBERS.map((m) => (
+              <div key={m} className="grid gap-1">
+                <Label htmlFor={`budget-input-${m}`} className="text-xs">
+                  {m} (₹{Math.round(budgetFor(m))})
+                </Label>
+                <div className="flex items-center gap-1.5">
+                  <Input
+                    id={`budget-input-${m}`}
+                    data-testid={`budget-amount-input-${m.toLowerCase()}`}
+                    type="number"
+                    min="0"
+                    value={budgetInput[m] ?? ""}
+                    onChange={(e) => setBudgetInput((b) => ({ ...b, [m]: e.target.value }))}
+                    placeholder={String(Math.round(budgetFor(m)) || 20000)}
+                    className="w-28"
+                  />
+                  <Button
+                    size="icon-sm"
+                    data-testid={`budget-save-button-${m.toLowerCase()}`}
+                    disabled={!budgetInput[m] || saveBudget.isPending}
+                    onClick={() => saveBudget.mutate(m)}
+                    className="bg-[#1E4030] text-white hover:bg-[#23492F]"
+                  >
+                    <Target className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
         <div className="mt-5">
@@ -132,15 +155,15 @@ export default function Budget() {
           <div className="mt-2 flex justify-between text-sm">
             <span className="text-muted-foreground">
               {formatINR(s?.expense_total ?? 0)} spent
-              {s && s.budget > 0 && (
-                <span className={(s.expense_total / s.budget) > 0.9 ? "font-semibold text-[#B93826]" : ""}>
+              {budgetTotal > 0 && (
+                <span className={((s?.expense_total ?? 0) / budgetTotal) > 0.9 ? "font-semibold text-[#B93826]" : ""}>
                   {" "}
-                  · {Math.round((s.expense_total / s.budget) * 100)}% of budget
+                  · {Math.round(((s?.expense_total ?? 0) / budgetTotal) * 100)}% of budget
                 </span>
               )}
             </span>
             <span className="font-medium" data-testid="budget-remaining-display">
-              {s && s.budget > 0 ? `${formatINR(s.remaining)} left` : "No budget set yet"}
+              {budgetTotal > 0 ? `${formatINR(budgetTotal - (s?.expense_total ?? 0))} left` : "No budget set yet"}
             </span>
           </div>
         </div>
@@ -180,6 +203,24 @@ export default function Budget() {
                   placeholder="Salary, rental, freelance…"
                 />
               </div>
+              <div className="grid w-28 gap-1">
+                <Label htmlFor="income-member" className="text-xs">
+                  Belongs to
+                </Label>
+                <select
+                  id="income-member"
+                  data-testid="income-member-select"
+                  value={member}
+                  onChange={(e) => setMember(e.target.value)}
+                  className="h-9 rounded-md border border-input bg-card px-2 text-sm"
+                >
+                  {MEMBERS.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="grid w-32 gap-1">
                 <Label htmlFor="income-amount" className="text-xs">
                   Amount (₹)
@@ -207,7 +248,15 @@ export default function Budget() {
                 <div key={inc.id} className="flex items-center justify-between rounded-xl bg-muted/60 px-4 py-2.5" data-testid="income-row">
                   <div>
                     <p className="text-sm font-medium">{inc.source}</p>
-                    <p className="text-xs text-muted-foreground">{monthLabel(inc.month)}</p>
+                    <p className="text-xs text-muted-foreground">
+                      <span
+                        className="mr-1.5 rounded-full bg-[#EBF2EC] px-2 py-0.5 font-semibold text-[#1E3A2B]"
+                        data-testid="income-row-member"
+                      >
+                        {inc.member}
+                      </span>
+                      {monthLabel(inc.month)}
+                    </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="font-display-num font-semibold">{formatINR(inc.amount)}</span>

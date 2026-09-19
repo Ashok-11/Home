@@ -32,6 +32,7 @@ export interface Income {
   id: string;
   source: string;
   source_type: string;
+  member: string;
   amount: number;
   date: string;
   month: string;
@@ -81,6 +82,7 @@ export interface CardSpend {
 export interface IncomeSourceTotal {
   source: string;
   source_type: string;
+  member: string;
   total: number;
 }
 
@@ -99,6 +101,13 @@ export interface DashboardData {
   personal: PersonalFund;
   cards: CardSpend[];
   recent_expenses: Expense[];
+}
+
+export interface Budget {
+  id: string;
+  month: string;
+  amount: number;
+  member: string;
 }
 
 export interface Allowance {

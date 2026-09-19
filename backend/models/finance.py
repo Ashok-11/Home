@@ -46,6 +46,7 @@ class Expense(BaseModel):
 class IncomeCreate(BaseModel):
     source: str = Field(min_length=1)
     source_type: str = "other"  # ashok | manasa | rental | other
+    member: str = "Common"  # Ashok | Manasa | Common — whose income it is
     amount: float = Field(gt=0)
     date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
 
@@ -54,6 +55,7 @@ class Income(BaseModel):
     id: str = Field(default_factory=_uuid)
     source: str
     source_type: str = "other"
+    member: str = "Common"
     amount: float
     date: str
     month: str
@@ -150,6 +152,7 @@ class DashboardData(BaseModel):
 class IncomeSourceTotal(BaseModel):
     source: str
     source_type: str
+    member: str = "Common"
     total: float
 
 

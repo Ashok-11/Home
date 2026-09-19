@@ -42,6 +42,19 @@ def month_of(date: str) -> str:
     return date[:7]
 
 
+def _income_member(doc: dict) -> str:
+    """Whose income a row belongs to — falls back to the legacy source_type."""
+    member = doc.get("member")
+    if member in MEMBERS:
+        return member
+    kind = doc.get("source_type", "other")
+    if kind == "ashok":
+        return "Ashok"
+    if kind == "manasa":
+        return "Manasa"
+    return "Common"
+
+
 def months_in_scope(scope: str, key: str) -> list[str]:
     """Every YYYY-MM covered by a scope key."""
     if scope == "month":
@@ -122,7 +135,7 @@ async def delete_expense(expense_id: str, _: dict = Depends(require_user)):
 @router.get("/incomes", response_model=list[Income])
 async def list_incomes(month: Optional[str] = None, _: dict = Depends(require_user)):
     docs = await db.incomes.find({"month": month or today_iso()[:7]}).sort("created_at", DESCENDING).to_list(500)
-    return [Income(**d) for d in docs]
+    return [Income(**{**d, "member": _income_member(d)}) for d in docs]
 
 
 @router.post("/incomes", response_model=Income, status_code=201)
@@ -237,9 +250,6 @@ async def dashboard(
         raise HTTPException(status_code=422, detail="view must be personal or combined")
     me = user["name"]
     visible_members = {me, "Common"} if view == "personal" else set(MEMBERS)
-    income_kinds = (
-        {me.lower(), "rental", "other"} if view == "personal" else {"ashok", "manasa", "rental", "other"}
-    )
     today = today_iso()
     if not key:
         if scope == "month":
@@ -253,7 +263,7 @@ async def dashboard(
 
     income_docs = [
         i for i in await db.incomes.find({"month": {"$in": months}}).to_list(2000)
-        if i.get("source_type", "other") in income_kinds
+        if _income_member(i) in visible_members
     ]
     expense_docs = [
         e for e in await db.expenses.find({"month": {"$in": months}}).to_list(20000)
@@ -263,16 +273,16 @@ async def dashboard(
     allowance_docs = await db.allowances.find({"month": {"$in": months}}).to_list(200)
     card_docs = await db.cards.find().to_list(200)
 
-    # income split by earner
+    # income split straight from the income entries' member column
     income = IncomeBreakdown()
     for i in income_docs:
-        kind = i.get("source_type", "other")
+        member = _income_member(i)
         amount = i["amount"]
-        if kind == "ashok":
+        if member == "Ashok":
             income.ashok += amount
-        elif kind == "manasa":
+        elif member == "Manasa":
             income.manasa += amount
-        elif kind == "rental":
+        elif i.get("source_type", "other") == "rental":
             income.rental += amount
         else:
             income.other += amount
@@ -289,12 +299,12 @@ async def dashboard(
         budget_by_member[m] = round(budget_by_member.get(m, 0.0) + b["amount"], 2)
 
     # income rows exactly as entered on the Budget & Income page
-    income_rows: dict[tuple[str, str], float] = {}
+    income_rows: dict[tuple[str, str, str], float] = {}
     for i in income_docs:
-        k = (i["source"], i.get("source_type", "other"))
+        k = (i["source"], i.get("source_type", "other"), _income_member(i))
         income_rows[k] = round(income_rows.get(k, 0.0) + i["amount"], 2)
     income_by_source = sorted(
-        (IncomeSourceTotal(source=s_, source_type=t, total=v) for (s_, t), v in income_rows.items()),
+        (IncomeSourceTotal(source=s_, source_type=t, member=m_, total=v) for (s_, t, m_), v in income_rows.items()),
         key=lambda r: -r.total,
     )
 

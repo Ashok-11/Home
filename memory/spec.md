@@ -77,3 +77,10 @@ filter, allowance, PWA assets, public cook view, and the blank-screen regression
 - `components/DishImage.tsx` renders every dish photo and falls back to a neutral "No photo" placeholder (never a random dish) when the value is empty or the URL fails.
 - Menu Planner has Cook / Salad station tabs; entries and the recipe picker are filtered by `station` (entry.station comes from the recipe).
 - Mobile: tighter page padding, smaller page titles, responsive 3-col form grids.
+
+## Update — income members, per-member budgets, locked station boards
+- `incomes` rows now carry `member` (Ashok | Manasa | Common); the Budget & Income page has a "Belongs to" select and shows the member on every row. Dashboard income tiles are computed purely from income entries (Ashok/Manasa by member; Rental/Other from Common rows' source_type). Legacy rows fall back via `_income_member()`.
+- Monthly budget is set per member (Ashok / Manasa / Common) on the Budget page; the gauge uses the sum of the month's budgets.
+- Dashboard opens on the **Personal** view by default.
+- Public /cook and /salad boards are read-only: servings are shown as planned (no stepper) and there are no links to any other page.
+- Cards & Sources has full CRUD (create, edit via pencil, delete). Categories / aisles / meal timings CRUD lives on the Settings page and drives every dropdown, including the planner's per-day timings.
