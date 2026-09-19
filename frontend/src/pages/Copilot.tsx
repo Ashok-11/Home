@@ -96,7 +96,7 @@ export default function Copilot() {
         <div className="grid gap-3">
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#245C3F] to-[#C85A32] text-white shadow-lg">
+              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1E4030] to-[#D0663C] text-white shadow-lg">
                 <Sparkles className="h-7 w-7" />
               </div>
               <p className="mt-4 font-heading text-lg font-semibold">Ask me anything about your home</p>
@@ -121,7 +121,7 @@ export default function Copilot() {
               <div
                 className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                   m.role === "user"
-                    ? "rounded-br-md bg-[#245C3F] text-white"
+                    ? "rounded-br-md bg-[#1E4030] text-white"
                     : "rounded-bl-md bg-card shadow-sm ring-1 ring-border"
                 }`}
               >
@@ -142,7 +142,7 @@ export default function Copilot() {
           placeholder="Ask about spending, menu, chores…"
           className="border-0 bg-transparent shadow-none focus-visible:ring-0"
         />
-        <Button data-testid="copilot-send-button" disabled={streaming || !input.trim()} onClick={() => send()} className="bg-[#C85A32] text-white hover:bg-[#B24C26]">
+        <Button data-testid="copilot-send-button" disabled={streaming || !input.trim()} onClick={() => send()} className="bg-[#D0663C] text-white hover:bg-[#B8552F]">
           <Send className="h-4 w-4" />
         </Button>
       </div>

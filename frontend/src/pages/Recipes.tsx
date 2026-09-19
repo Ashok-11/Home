@@ -141,9 +141,9 @@ export default function Recipes() {
         actions={
           <>
             <Button variant="outline" data-testid="recipes-ai-ideas-button" onClick={() => setAiOpen(true)}>
-              <WandSparkles className="h-4 w-4 text-[#C85A32]" /> AI ideas
+              <WandSparkles className="h-4 w-4 text-[#D0663C]" /> AI ideas
             </Button>
-            <Button data-testid="recipes-new-button" onClick={openCreate} className="bg-[#C85A32] text-white hover:bg-[#B24C26]">
+            <Button data-testid="recipes-new-button" onClick={openCreate} className="bg-[#D0663C] text-white hover:bg-[#B8552F]">
               <Plus className="h-4 w-4" /> New recipe
             </Button>
           </>
@@ -316,7 +316,7 @@ export default function Recipes() {
                 data-testid="recipe-save-button"
                 disabled={!form.name || save.isPending}
                 onClick={() => save.mutate()}
-                className="bg-[#C85A32] text-white hover:bg-[#B24C26]"
+                className="bg-[#D0663C] text-white hover:bg-[#B8552F]"
               >
                 {editing ? "Update recipe" : "Save to vault"}
               </Button>
@@ -356,7 +356,7 @@ export default function Recipes() {
                 <ol className="grid gap-2">
                   {detail.steps.map((s, i) => (
                     <li key={i} className="flex gap-2 text-sm">
-                      <span className="font-display-num text-[#C85A32]">{i + 1}.</span> {s}
+                      <span className="font-display-num text-[#D0663C]">{i + 1}.</span> {s}
                     </li>
                   ))}
                 </ol>
@@ -395,7 +395,7 @@ export default function Recipes() {
         <DialogContent className="max-h-[85svh] overflow-y-auto sm:max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 font-heading">
-              <Sparkles className="h-5 w-5 text-[#C85A32]" /> AI recipe ideas
+              <Sparkles className="h-5 w-5 text-[#D0663C]" /> AI recipe ideas
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-3">
@@ -406,7 +406,7 @@ export default function Recipes() {
               onChange={(e) => setAiPrompt(e.target.value)}
               placeholder="e.g. quick South Indian dinner under 30 minutes, mildly spicy"
             />
-            <Button data-testid="ai-ideas-generate-button" disabled={generate.isPending} onClick={() => generate.mutate()} className="bg-[#245C3F] text-white hover:bg-[#1E4A33]">
+            <Button data-testid="ai-ideas-generate-button" disabled={generate.isPending} onClick={() => generate.mutate()} className="bg-[#1E4030] text-white hover:bg-[#23492F]">
               <WandSparkles className="h-4 w-4" /> {generate.isPending ? "Thinking…" : "Generate ideas"}
             </Button>
             {drafts.map((d, i) => (

@@ -15,9 +15,10 @@ def _now() -> datetime:
 
 class ChoreCreate(BaseModel):
     title: str = Field(min_length=1)
-    assignee: str = "Shared"  # Husband | Wife | Shared
+    assignee: str = "Shared"  # Ashok | Manasa | Common
     frequency: str = "Daily"  # Daily | Weekly | Monthly | Seasonal
     due_date: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
+    area: str = "household"  # cooking | household
 
 
 class ChoreUpdate(BaseModel):
@@ -26,6 +27,7 @@ class ChoreUpdate(BaseModel):
     frequency: Optional[str] = None
     due_date: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
     done: Optional[bool] = None
+    area: Optional[str] = None
 
 
 class Chore(BaseModel):
@@ -34,5 +36,6 @@ class Chore(BaseModel):
     assignee: str = "Shared"
     frequency: str = "Daily"
     due_date: Optional[str] = None
+    area: str = "household"
     done: bool = False
     created_at: datetime = Field(default_factory=_now)

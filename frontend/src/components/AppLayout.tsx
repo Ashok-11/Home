@@ -4,7 +4,8 @@ import { useTheme } from "next-themes";
 import {
   CalendarDays,
   CheckSquare,
-  ChefHat,
+  CookingPot,
+  CreditCard,
   ExternalLink,
   LayoutDashboard,
   LogOut,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 import { endSession, useMe } from "@/lib/session";
 import { cn } from "@/lib/utils";
+import { ManshokWordmark } from "@/components/decor";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 
@@ -26,10 +28,12 @@ const NAV = [
   { name: "Dashboard", path: "/dashboard", icon: LayoutDashboard, testid: "nav-dashboard" },
   { name: "Daily Expenses", path: "/expenses", icon: Receipt, testid: "nav-expenses" },
   { name: "Budget & Income", path: "/budget", icon: WalletCards, testid: "nav-budget" },
+  { name: "Cards & Sources", path: "/cards", icon: CreditCard, testid: "nav-cards" },
+  { name: "Kitchen Board", path: "/kitchen", icon: CookingPot, testid: "nav-kitchen" },
   { name: "Menu Planner", path: "/menu", icon: CalendarDays, testid: "nav-menu" },
   { name: "Recipe Vault", path: "/recipes", icon: UtensilsCrossed, testid: "nav-recipes" },
   { name: "Grocery List", path: "/grocery", icon: ShoppingCart, testid: "nav-grocery" },
-  { name: "Chores Tracker", path: "/chores", icon: CheckSquare, testid: "nav-chores" },
+  { name: "Chores & Service", path: "/chores", icon: CheckSquare, testid: "nav-chores" },
   { name: "AI Copilot", path: "/copilot", icon: Sparkles, testid: "nav-copilot" },
 ];
 
@@ -46,8 +50,8 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
             cn(
               "flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors",
               isActive
-                ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-[inset_3px_0_0_#C85A32]"
-                : "text-[#9CB5A2] hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
+                ? "bg-sidebar-primary text-sidebar-primary-foreground shadow-[inset_3px_0_0_#E4B45A]"
+                : "text-[#9BAE9F] hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
             )
           }
         >
@@ -64,24 +68,18 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
   const me = useMe();
 
   return (
-    <div className="flex h-full flex-col justify-between bg-sidebar p-5 text-sidebar-foreground">
+    <div className="flex h-full flex-col justify-between overflow-y-auto bg-sidebar p-5 text-sidebar-foreground">
       <div>
-        <div className="mb-8 flex items-center gap-3 px-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#C85A32] text-white shadow-lg">
-            <ChefHat className="h-5 w-5" />
-          </div>
-          <div>
-            <p className="font-heading text-lg font-bold leading-tight">HomeBoard</p>
-            <p className="text-[11px] uppercase tracking-[0.18em] text-[#9CB5A2]">Warm Home Kitchen</p>
-          </div>
+        <div className="mb-7 px-1">
+          <ManshokWordmark />
         </div>
         <NavLinks onNavigate={onNavigate} />
       </div>
-      <div className="flex flex-col gap-3">
+      <div className="mt-6 flex flex-col gap-3">
         <a
           href="/cook"
           data-testid="nav-cook-link"
-          className="flex items-center justify-center gap-2 rounded-full bg-[#C85A32] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#B24C26]"
+          className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#D0663C] to-[#E4B45A] px-4 py-2.5 text-sm font-semibold text-[#1A1008] transition-transform hover:scale-[1.02]"
         >
           <ExternalLink className="h-4 w-4" /> Open Cook View
         </a>
@@ -95,7 +93,7 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
               size="icon-xs"
               data-testid="theme-toggle-button"
               onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-              className="text-[#9CB5A2] hover:text-sidebar-foreground"
+              className="text-[#9BAE9F] hover:text-sidebar-foreground"
             >
               {resolvedTheme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
             </Button>
@@ -104,7 +102,7 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
               size="icon-xs"
               data-testid="nav-logout-button"
               onClick={() => endSession()}
-              className="text-[#9CB5A2] hover:text-[#E87C52]"
+              className="text-[#9BAE9F] hover:text-[#E4854F]"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -127,14 +125,11 @@ export default function AppLayout() {
 
       {/* mobile top bar */}
       <header className="sticky top-0 z-30 flex items-center justify-between bg-sidebar px-4 py-3 text-sidebar-foreground lg:hidden">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#C85A32]">
-            <ChefHat className="h-4 w-4 text-white" />
-          </div>
-          <span className="font-heading text-base font-bold">HomeBoard</span>
-        </div>
+        <ManshokWordmark compact />
         <Sheet open={open} onOpenChange={setOpen}>
-          <SheetTrigger render={<Button variant="ghost" size="icon" data-testid="mobile-menu-button" className="text-sidebar-foreground" />}>
+          <SheetTrigger
+            render={<Button variant="ghost" size="icon" data-testid="mobile-menu-button" className="text-sidebar-foreground" />}
+          >
             <Menu className="h-5 w-5" />
           </SheetTrigger>
           <SheetContent side="left" className="w-72 border-sidebar-border bg-sidebar p-0 text-sidebar-foreground">

@@ -123,7 +123,7 @@ export default function Expenses() {
                 setEditing(null);
                 setDialogOpen(true);
               }}
-              className="bg-[#C85A32] text-white hover:bg-[#B24C26]"
+              className="bg-[#D0663C] text-white hover:bg-[#B8552F]"
             >
               <Plus className="h-4 w-4" /> Add expense
             </Button>
@@ -135,7 +135,7 @@ export default function Expenses() {
       <Card className="glass rounded-2xl border-0">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 font-heading text-xl">
-            <Sparkles className="h-5 w-5 text-[#C85A32]" /> Smart expense entry
+            <Sparkles className="h-5 w-5 text-[#D0663C]" /> Smart expense entry
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -152,7 +152,7 @@ export default function Expenses() {
               data-testid="smart-entry-parse-button"
               disabled={smartText.trim().length < 3 || parse.isPending}
               onClick={() => parse.mutate()}
-              className="bg-[#245C3F] text-white hover:bg-[#1E4A33]"
+              className="bg-[#1E4030] text-white hover:bg-[#23492F]"
             >
               <WandSparkles className="h-4 w-4" /> {parse.isPending ? "Reading…" : "Parse with AI"}
             </Button>
@@ -251,7 +251,8 @@ export default function Expenses() {
               <TableHead>Date</TableHead>
               <TableHead>Category</TableHead>
               <TableHead>Note</TableHead>
-              <TableHead>Member</TableHead>
+              <TableHead>Source</TableHead>
+              <TableHead>Who</TableHead>
               <TableHead className="text-right">Amount</TableHead>
               <TableHead className="w-20" />
             </TableRow>
@@ -264,6 +265,14 @@ export default function Expenses() {
                   <Badge variant="secondary">{e.category}</Badge>
                 </TableCell>
                 <TableCell className="max-w-56 truncate text-sm text-muted-foreground">{e.note || "—"}</TableCell>
+                <TableCell className="text-sm">
+                  {e.source_label || "—"}
+                  {e.is_personal && (
+                    <span className="ml-1.5 rounded-full bg-[#F1E9DA] px-1.5 py-0.5 text-[10px] font-semibold text-[#6B5426]">
+                      personal
+                    </span>
+                  )}
+                </TableCell>
                 <TableCell className="text-sm">{e.member}</TableCell>
                 <TableCell className="font-display-num text-right font-semibold">{formatINR(e.amount)}</TableCell>
                 <TableCell className="text-right">
@@ -288,7 +297,7 @@ export default function Expenses() {
             ))}
             {expenses.data && expenses.data.length === 0 && (
               <TableRow>
-                <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={7} className="py-10 text-center text-sm text-muted-foreground">
                   No expenses for this filter yet.
                 </TableCell>
               </TableRow>

@@ -53,74 +53,76 @@
 }
 
 :root {
-    --background: #FBF7EE;
-    --foreground: #1C241D;
+    --background: #FAF6EE;
+    --foreground: #1A211B;
     --card: #FFFFFF;
-    --card-foreground: #1C241D;
+    --card-foreground: #1A211B;
     --popover: #FFFFFF;
-    --popover-foreground: #1C241D;
-    --primary: #245C3F;
-    --primary-foreground: #F5F0E6;
-    --secondary: #F2EBE0;
-    --secondary-foreground: #473A2B;
-    --muted: #F3ECE0;
-    --muted-foreground: #5F6B5C;
-    --accent: #C85A32;
+    --popover-foreground: #1A211B;
+    --primary: #1E4030;
+    --primary-foreground: #F6F1E4;
+    --secondary: #F1E9DA;
+    --secondary-foreground: #45382A;
+    --muted: #F2ECE0;
+    --muted-foreground: #5E6A5C;
+    --accent: #D0663C;
     --accent-foreground: #FFFFFF;
     --destructive: #B93826;
-    --border: #E4DDD0;
-    --input: #E4DDD0;
-    --ring: #C85A32;
-    --chart-1: #245C3F;
-    --chart-2: #C85A32;
-    --chart-3: #D99B26;
+    --border: #E3DACB;
+    --input: #E3DACB;
+    --ring: #D0663C;
+    --chart-1: #1E4030;
+    --chart-2: #D0663C;
+    --chart-3: #E4B45A;
     --chart-4: #3D7B80;
     --chart-5: #87537D;
     --chart-6: #758E4F;
-    --radius: 0.75rem;
-    --sidebar: #112217;
-    --sidebar-foreground: #F5F0E6;
-    --sidebar-primary: #1E3B29;
-    --sidebar-primary-foreground: #E8F5E9;
-    --sidebar-accent: #1E3B29;
-    --sidebar-accent-foreground: #E8F5E9;
-    --sidebar-border: #1E3626;
-    --sidebar-ring: #C85A32;
+    --radius: 0.875rem;
+    --sidebar: #14261B;
+    --sidebar-foreground: #F6F1E4;
+    --sidebar-primary: #23402F;
+    --sidebar-primary-foreground: #FBF1DC;
+    --sidebar-accent: #23402F;
+    --sidebar-accent-foreground: #FBF1DC;
+    --sidebar-border: #21382A;
+    --sidebar-ring: #E4B45A;
+    --gold: #E4B45A;
 }
 
 .dark {
-    --background: #121712;
-    --foreground: #F5F0E6;
-    --card: #1A231B;
-    --card-foreground: #F5F0E6;
-    --popover: #1A231B;
-    --popover-foreground: #F5F0E6;
+    --background: #101510;
+    --foreground: #F6F1E4;
+    --card: #18211A;
+    --card-foreground: #F6F1E4;
+    --popover: #18211A;
+    --popover-foreground: #F6F1E4;
     --primary: #8FBF9C;
-    --primary-foreground: #10241A;
-    --secondary: #242E25;
-    --secondary-foreground: #E8F5E9;
-    --muted: #202A21;
-    --muted-foreground: #9CB5A2;
-    --accent: #E87C52;
-    --accent-foreground: #2B1206;
+    --primary-foreground: #0E1E15;
+    --secondary: #222C23;
+    --secondary-foreground: #F1E9DA;
+    --muted: #1E271F;
+    --muted-foreground: #9BAE9F;
+    --accent: #E4854F;
+    --accent-foreground: #241004;
     --destructive: #E86A5A;
-    --border: #26332A;
-    --input: #26332A;
-    --ring: #E87C52;
+    --border: #253026;
+    --input: #253026;
+    --ring: #E4B45A;
     --chart-1: #7FB08F;
-    --chart-2: #E87C52;
-    --chart-3: #E5B45A;
+    --chart-2: #E4854F;
+    --chart-3: #E4B45A;
     --chart-4: #6FA9AE;
     --chart-5: #B583AC;
     --chart-6: #A3BC7E;
-    --sidebar: #0D160F;
-    --sidebar-foreground: #F5F0E6;
-    --sidebar-primary: #1E3B29;
-    --sidebar-primary-foreground: #E8F5E9;
-    --sidebar-accent: #1E3B29;
-    --sidebar-accent-foreground: #E8F5E9;
-    --sidebar-border: #1E3626;
-    --sidebar-ring: #E87C52;
+    --sidebar: #0C150F;
+    --sidebar-foreground: #F6F1E4;
+    --sidebar-primary: #23402F;
+    --sidebar-primary-foreground: #FBF1DC;
+    --sidebar-accent: #23402F;
+    --sidebar-accent-foreground: #FBF1DC;
+    --sidebar-border: #21382A;
+    --sidebar-ring: #E4B45A;
+    --gold: #E4B45A;
 }
 
 @layer base {
@@ -197,3 +199,74 @@
     letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
 }
+
+/* ---------- Manshok graphics kit ---------- */
+
+/* gold hairline + sheen used on premium cards */
+.gold-edge {
+    position: relative;
+    border: 1px solid rgba(228, 180, 90, 0.35);
+}
+.gold-edge::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(135deg, rgba(228, 180, 90, 0.16), transparent 42%);
+}
+
+.text-gradient-gold {
+    background: linear-gradient(100deg, #E4B45A 0%, #D0663C 55%, #E4B45A 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+}
+
+/* dark jewel panel for hero/metric surfaces */
+.jewel {
+    background:
+        radial-gradient(120% 140% at 0% 0%, rgba(228, 180, 90, 0.18) 0%, transparent 55%),
+        radial-gradient(120% 140% at 100% 100%, rgba(208, 102, 60, 0.28) 0%, transparent 55%),
+        linear-gradient(160deg, #1B3225 0%, #14261B 60%, #101B14 100%);
+    color: #F6F1E4;
+}
+
+/* soft aurora sweep for page headers */
+.aurora {
+    background: conic-gradient(from 140deg at 50% 50%, #1E4030, #D0663C, #E4B45A, #1E4030);
+    filter: blur(58px);
+    opacity: 0.35;
+    animation: aurora-spin 22s linear infinite;
+}
+@keyframes aurora-spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+.shimmer {
+    background: linear-gradient(90deg, transparent, rgba(228, 180, 90, 0.35), transparent);
+    background-size: 200% 100%;
+    animation: shimmer 2.8s ease-in-out infinite;
+}
+
+/* ring gauge track/value helpers */
+.ring-gauge {
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+}
+
+@keyframes pop-in {
+    0% { opacity: 0; transform: scale(0.94) translateY(8px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-pop-in { animation: pop-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both; }
+
+@keyframes count-glow {
+    0%, 100% { text-shadow: none; }
+    50% { text-shadow: 0 0 18px rgba(228, 180, 90, 0.45); }
+}
+.animate-count-glow { animation: count-glow 2.6s ease-in-out infinite; }

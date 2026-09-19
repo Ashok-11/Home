@@ -4,15 +4,42 @@ export const CATEGORIES = [
   "Maid/Cook Salary",
   "Dining Out",
   "Home Maintenance",
+  "Personal",
   "Kids",
   "Healthcare",
   "Transport",
   "Misc",
 ] as const;
 
-export const MEMBERS = ["Husband", "Wife", "Shared"] as const;
+// The household: Ashok + Manasa (Manshok), plus shared spends.
+export const MEMBERS = ["Ashok", "Manasa", "Common"] as const;
+
+export const INCOME_TYPES = [
+  { value: "ashok", label: "Ashok's Income" },
+  { value: "manasa", label: "Manasa's Income" },
+  { value: "rental", label: "Rental Income" },
+  { value: "other", label: "Other Sources" },
+] as const;
+
+export const CARD_TYPES = [
+  { value: "credit", label: "Credit card" },
+  { value: "debit", label: "Debit card" },
+  { value: "upi", label: "UPI / wallet" },
+  { value: "cash", label: "Cash" },
+] as const;
+
+export const CARD_TYPE_LABELS: Record<string, string> = Object.fromEntries(
+  CARD_TYPES.map((c) => [c.value, c.label]),
+);
 
 export const FREQUENCIES = ["Daily", "Weekly", "Monthly", "Seasonal"] as const;
+
+export const CHORE_AREAS = [
+  { value: "household", label: "Household" },
+  { value: "cooking", label: "Cooking" },
+] as const;
+
+export const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
 
 export const AISLES = [
   "Vegetables & Greens",
@@ -35,7 +62,17 @@ export const SLOT_LABELS: Record<string, string> = Object.fromEntries(
 
 export const UNITS = ["g", "kg", "ml", "l", "tbsp", "tsp", "cup", "piece", "pinch"] as const;
 
-export const CHART_COLORS = ["#245C3F", "#C85A32", "#D99B26", "#3D7B80", "#87537D", "#758E4F"];
+export const CHART_COLORS = ["#1E4030", "#D0663C", "#E4B45A", "#3D7B80", "#87537D", "#758E4F"];
+
+export const BRAND = {
+  name: "Manshok",
+  tagline: "Manasa + Ashok",
+  green: "#14261B",
+  greenSoft: "#1E4030",
+  terracotta: "#D0663C",
+  gold: "#E4B45A",
+  cream: "#FAF6EE",
+};
 
 export const HERO_IMAGES = {
   login:

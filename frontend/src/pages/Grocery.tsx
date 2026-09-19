@@ -112,7 +112,7 @@ export default function Grocery() {
             </SelectContent>
           </Select>
         </div>
-        <Button data-testid="grocery-add-button" disabled={!name || add.isPending} onClick={() => add.mutate()} className="bg-[#C85A32] text-white hover:bg-[#B24C26]">
+        <Button data-testid="grocery-add-button" disabled={!name || add.isPending} onClick={() => add.mutate()} className="bg-[#D0663C] text-white hover:bg-[#B8552F]">
           <Plus className="h-4 w-4" /> Add
         </Button>
       </div>

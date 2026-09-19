@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { apiPatch, apiPost } from "@/lib/api";
+import { apiGet, apiPatch, apiPost } from "@/lib/api";
 import { CATEGORIES, MEMBERS } from "@/lib/constants";
 import { todayIso } from "@/lib/format";
-import type { Expense } from "@/lib/types";
+import type { Card as PaymentCard, Expense } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -35,29 +36,50 @@ export default function ExpenseDialog({ open, onOpenChange, expense, defaultDate
   const qc = useQueryClient();
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState<string>("Groceries");
-  const [member, setMember] = useState<string>("Shared");
+  const [member, setMember] = useState<string>("Common");
   const [date, setDate] = useState(defaultDate ?? todayIso());
   const [note, setNote] = useState("");
+  const [sourceId, setSourceId] = useState<string>("");
+  const [isPersonal, setIsPersonal] = useState(false);
+
+  const cards = useQuery({
+    queryKey: ["cards"],
+    queryFn: () => apiGet<PaymentCard[]>("/cards"),
+    enabled: open,
+  });
 
   useEffect(() => {
     if (open) {
       setAmount(expense ? String(expense.amount) : "");
       setCategory(expense?.category ?? "Groceries");
-      setMember(expense?.member ?? "Shared");
+      setMember(expense?.member ?? "Common");
       setDate(expense?.date ?? defaultDate ?? todayIso());
       setNote(expense?.note ?? "");
+      setSourceId(expense?.source_id ?? "");
+      setIsPersonal(expense?.is_personal ?? false);
     }
   }, [open, expense, defaultDate]);
 
   const save = useMutation({
     mutationFn: async () => {
-      const body = { amount: Number(amount), category, note, date, member };
+      const card = (cards.data ?? []).find((c) => c.id === sourceId);
+      const body = {
+        amount: Number(amount),
+        category,
+        note,
+        date,
+        member,
+        source_id: sourceId || null,
+        source_label: card ? card.name : "",
+        is_personal: isPersonal,
+      };
       if (expense) return apiPatch<Expense>(`/expenses/${expense.id}`, body);
       return apiPost<Expense>("/expenses", body);
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["expenses"] });
       qc.invalidateQueries({ queryKey: ["summary"] });
+      qc.invalidateQueries({ queryKey: ["dashboard"] });
       toast.success(expense ? "Expense updated" : "Expense added");
       onOpenChange(false);
     },
@@ -65,6 +87,8 @@ export default function ExpenseDialog({ open, onOpenChange, expense, defaultDate
   });
 
   const valid = Number(amount) > 0 && !!date;
+  const sourceLabel =
+    (cards.data ?? []).find((c) => c.id === sourceId)?.name ?? "Not specified";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -114,7 +138,7 @@ export default function ExpenseDialog({ open, onOpenChange, expense, defaultDate
               </Select>
             </div>
             <div className="grid gap-1.5">
-              <Label>Member</Label>
+              <Label>Who spent</Label>
               <Select value={member} onValueChange={(v: string) => setMember(v)}>
                 <SelectTrigger data-testid="expense-member-select">
                   <SelectValue>{member}</SelectValue>
@@ -130,6 +154,27 @@ export default function ExpenseDialog({ open, onOpenChange, expense, defaultDate
             </div>
           </div>
           <div className="grid gap-1.5">
+            <Label>Money source (card / UPI / cash)</Label>
+            <Select value={sourceId} onValueChange={(v: string) => setSourceId(v)}>
+              <SelectTrigger data-testid="expense-source-select">
+                <SelectValue>{sourceLabel}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {(cards.data ?? []).map((c) => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name}
+                    {c.last4 ? ` •••• ${c.last4}` : ""} — {c.owner}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {(cards.data ?? []).length === 0 && (
+              <p className="text-xs text-muted-foreground">
+                No sources yet — add your cards on the Cards page.
+              </p>
+            )}
+          </div>
+          <div className="grid gap-1.5">
             <Label htmlFor="expense-note">Note</Label>
             <Textarea
               id="expense-note"
@@ -140,6 +185,19 @@ export default function ExpenseDialog({ open, onOpenChange, expense, defaultDate
               rows={2}
             />
           </div>
+          <label className="flex items-center gap-2.5 rounded-xl bg-muted/60 px-3 py-2.5">
+            <Checkbox
+              checked={isPersonal}
+              onCheckedChange={(v) => setIsPersonal(v === true)}
+              data-testid="expense-personal-checkbox"
+            />
+            <span className="text-sm">
+              Counts against the personal fund
+              <span className="block text-xs text-muted-foreground">
+                Tick for own spending money (₹15,000/month each by default)
+              </span>
+            </span>
+          </label>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
@@ -149,7 +207,7 @@ export default function ExpenseDialog({ open, onOpenChange, expense, defaultDate
             data-testid="expense-save-button"
             disabled={!valid || save.isPending}
             onClick={() => save.mutate()}
-            className="bg-[#C85A32] text-white hover:bg-[#B24C26]"
+            className="bg-[#D0663C] text-white hover:bg-[#B8552F]"
           >
             {save.isPending ? "Saving…" : expense ? "Update" : "Add expense"}
           </Button>

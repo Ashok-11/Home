@@ -1,0 +1,86 @@
+{
+  "iteration": 1,
+  "passed": 9,
+  "failed": 0,
+  "checks": [
+    {
+      "criterion": "Login works for both household accounts (API)",
+      "name": "test_tscheck_login.py::test_login_succeeds_for_both_accounts",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/auth/login 200 for ashokthulas@gmail.com and manasavenky29@gmail.com, both set hb_session cookie, body matches name/email"
+    },
+    {
+      "criterion": "Wrong password rejected (API)",
+      "name": "test_tscheck_login.py::test_login_rejects_wrong_password",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "POST /api/auth/login with wrong password -> 401 {\"detail\":\"Invalid email or password\"}, no session cookie set"
+    },
+    {
+      "criterion": "PWA assets still served",
+      "name": "test_tscheck_pwa_and_cook.py::test_manifest_webmanifest_served / test_icon_and_sw_served",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "GET /manifest.webmanifest 200 JSON name 'Manshok — Manasa + Ashok Home' display 'standalone'; GET /icon-512.png 200; GET /sw.js 200"
+    },
+    {
+      "criterion": "Public cook view backed by unauthenticated API",
+      "name": "test_tscheck_pwa_and_cook.py::test_public_cook_today_endpoint_no_auth",
+      "lane": "backend",
+      "status": "passed",
+      "evidence": "GET /api/cook/today 200 with entries[] list, no auth cookie sent"
+    },
+    {
+      "criterion": "Preview is not blank — root URL renders + repeat/reload + no active service worker",
+      "name": "login-page-renders-not-blank",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "'/' redirects to /login, 'Welcome home' heading + login-email-input/login-password-input/login-submit-button visible, #root innerHTML >200 chars, survives two page.reload()s, navigator.serviceWorker.getRegistrations() length 0, caches.keys() length 0"
+    },
+    {
+      "criterion": "Login works for both household accounts (UI) + wrong password shows error and stays on /login",
+      "name": "login-both-accounts-and-wrong-password",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Wrong password shows toast \"Those credentials don't match — only Ashok and Manasa can sign in.\" and stays on /login; ashokthulas@gmail.com and manasavenky29@gmail.com both land on /dashboard with dashboard-scope-label and dashboard-income-total visible"
+    },
+    {
+      "criterion": "Authenticated pages all render (no blank routes)",
+      "name": "authenticated-routes-render",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "nav-dashboard/nav-expenses/nav-cards/nav-kitchen/nav-chores visible; /expenses /cards /kitchen /chores /menu /recipes /grocery each render #root >100 chars with a visible h1/h2"
+    },
+    {
+      "criterion": "Public cook view renders without login",
+      "name": "public-cook-view-no-login",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "Fresh navigation to /cook (no cookies) shows cook-date-heading and cook-recipe-card without redirect to /login"
+    },
+    {
+      "criterion": "Dashboard period scope switching works",
+      "name": "dashboard-scope-tabs-switch",
+      "lane": "browser",
+      "status": "passed",
+      "evidence": "scope-tab-month -> scope-tab-fy -> scope-tab-cal -> scope-tab-month cycles dashboard-scope-label through distinct text values while dashboard-income-total remains visible; minor non-blocking React DOM-nesting console warning noted (see action_items)"
+    }
+  ],
+  "bugs": [],
+  "action_items": [
+    {
+      "type": "improvement",
+      "severity": "low",
+      "description": "React console warning during dashboard scope-tab render: '<span> cannot be a child of <%s>' HTML nesting hydration warning inside AppLayout/select option. Cosmetic/console-only, does not affect rendering or functionality — worth a quick look but not a functional bug.",
+      "affected_check": "dashboard-scope-tabs-switch"
+    },
+    {
+      "type": "note",
+      "severity": "low",
+      "description": "/app/memory/test_credentials.md is stale (references an older 'HomeBoard' app with husband@homeboard.app/wife@homeboard.app). Briefing credentials (ashokthulas@gmail.com / manasavenky29@gmail.com, Manshok@1411) were used instead and worked correctly. Consider updating the memory file.",
+      "affected_check": "none"
+    }
+  ],
+  "retest_needed": false
+}

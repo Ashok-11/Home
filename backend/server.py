@@ -19,6 +19,8 @@ load_dotenv(ROOT_DIR / '.env')
 from lib.db import client, db, ensure_indexes
 from routers.ai import router as ai_router
 from routers.auth import router as auth_router
+from routers.cards import router as cards_router
+from routers.service import router as service_router
 from routers.chores import router as chores_router
 from routers.cook import router as cook_router
 from routers.finance import router as finance_router
@@ -76,6 +78,8 @@ api_router.include_router(menu_router)
 api_router.include_router(cook_router)
 api_router.include_router(grocery_router)
 api_router.include_router(chores_router)
+api_router.include_router(cards_router)
+api_router.include_router(service_router)
 api_router.include_router(ai_router)
 
 # Include the router in the main app

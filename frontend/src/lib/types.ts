@@ -14,6 +14,9 @@ export interface Expense {
   date: string;
   month: string;
   member: string;
+  source_id: string | null;
+  source_label: string;
+  is_personal: boolean;
   created_by: string;
   created_at: string;
 }
@@ -28,6 +31,7 @@ export interface ParsedExpense {
 export interface Income {
   id: string;
   source: string;
+  source_type: string;
   amount: number;
   date: string;
   month: string;
@@ -47,6 +51,61 @@ export interface FinanceSummary {
   remaining: number;
   by_category: CategoryTotal[];
   recent_expenses: Expense[];
+}
+
+export interface IncomeBreakdown {
+  ashok: number;
+  manasa: number;
+  rental: number;
+  other: number;
+  total: number;
+}
+
+export interface PersonalFund {
+  allowance: number;
+  ashok_used: number;
+  manasa_used: number;
+}
+
+export interface CardSpend {
+  card_id: string | null;
+  name: string;
+  bank: string;
+  last4: string;
+  type: string;
+  owner: string;
+  total: number;
+  by_member: Record<string, number>;
+}
+
+export interface DashboardData {
+  scope: string;
+  key: string;
+  label: string;
+  income: IncomeBreakdown;
+  expense_total: number;
+  budget: number;
+  remaining: number;
+  by_category: CategoryTotal[];
+  personal: PersonalFund;
+  cards: CardSpend[];
+  recent_expenses: Expense[];
+}
+
+export interface Allowance {
+  id: string;
+  month: string;
+  amount: number;
+}
+
+export interface Card {
+  id: string;
+  name: string;
+  bank: string;
+  last4: string;
+  type: string;
+  owner: string;
+  created_at: string;
 }
 
 export interface Ingredient {
@@ -121,8 +180,32 @@ export interface Chore {
   assignee: string;
   frequency: string;
   due_date: string | null;
+  area: string;
   done: boolean;
   created_at: string;
+}
+
+export interface ServiceRecord {
+  id: string;
+  appliance_id: string;
+  date: string;
+  vendor: string;
+  cost: number;
+  notes: string;
+  created_at: string;
+}
+
+export interface Appliance {
+  id: string;
+  name: string;
+  location: string;
+  service_interval_months: number;
+  last_serviced_on: string | null;
+  notes: string;
+  created_at: string;
+  next_due: string | null;
+  overdue: boolean;
+  records: ServiceRecord[];
 }
 
 export interface CopilotMessage {

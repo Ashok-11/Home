@@ -1,0 +1,21 @@
+{
+  "name": "Manshok — Manasa + Ashok Home",
+  "short_name": "Manshok",
+  "description": "Household command centre: expenses, income, budget, cards, menu, recipes, chores and appliance service tracking.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#14261B",
+  "theme_color": "#14261B",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Add expense", "url": "/expenses" },
+    { "name": "Cook view", "url": "/cook" },
+    { "name": "Dashboard", "url": "/dashboard" }
+  ]
+}

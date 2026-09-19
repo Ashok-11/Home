@@ -113,7 +113,7 @@ export default function Budget() {
               data-testid="budget-save-button"
               disabled={!budgetInput || saveBudget.isPending}
               onClick={() => saveBudget.mutate()}
-              className="bg-[#245C3F] text-white hover:bg-[#1E4A33]"
+              className="bg-[#1E4030] text-white hover:bg-[#23492F]"
             >
               <Target className="h-4 w-4" /> Save
             </Button>
@@ -125,7 +125,7 @@ export default function Budget() {
               className="h-full rounded-full transition-all duration-700"
               style={{
                 width: `${spentPct}%`,
-                background: spentPct >= 90 ? "#B93826" : "linear-gradient(to right, #245C3F, #758E4F)",
+                background: spentPct >= 90 ? "#B93826" : "linear-gradient(to right, #1E4030, #758E4F)",
               }}
             />
           </div>
@@ -163,7 +163,7 @@ export default function Budget() {
         <Card className="rounded-2xl">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 font-heading text-xl">
-              <TrendingUp className="h-5 w-5 text-[#245C3F]" /> Income entries
+              <TrendingUp className="h-5 w-5 text-[#1E4030]" /> Income entries
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3">
@@ -241,7 +241,7 @@ export default function Budget() {
                     className="h-full rounded-full transition-all duration-500"
                     style={{
                       width: `${(c.total / maxCategory) * 100}%`,
-                      background: ["#245C3F", "#C85A32", "#D99B26", "#3D7B80", "#87537D", "#758E4F"][i % 6],
+                      background: ["#1E4030", "#D0663C", "#D99B26", "#3D7B80", "#87537D", "#758E4F"][i % 6],
                     }}
                   />
                 </div>

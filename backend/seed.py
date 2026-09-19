@@ -1,19 +1,40 @@
-"""Seed HomeBoard with the household accounts and starter data.
+"""Seed Manshok with the two household accounts and starter data.
 
 Run: cd /app/backend && python seed.py
-Idempotent — every section skips itself if its data already exists.
+Idempotent per section. Set RESET=1 to wipe household data and reseed:
+  cd /app/backend && RESET=1 python seed.py
 """
 
 import asyncio
+import os
 from datetime import datetime, timedelta, timezone
 
 from lib.db import db, ensure_indexes
 from lib.dates import today_iso
 from lib.session import hash_password
 
+PASSWORD = "Manshok@1411"
 MEMBERS = [
-    {"name": "Husband", "email": "husband@homeboard.app", "password": "kitchen123"},
-    {"name": "Wife", "email": "wife@homeboard.app", "password": "kitchen123"},
+    {"name": "Ashok", "email": "ashokthulas@gmail.com", "password": PASSWORD},
+    {"name": "Manasa", "email": "manasavenky29@gmail.com", "password": PASSWORD},
+]
+
+CARDS = [
+    {"name": "HDFC Regalia", "bank": "HDFC Bank", "last4": "4412", "type": "credit", "owner": "Ashok"},
+    {"name": "ICICI Amazon Pay", "bank": "ICICI Bank", "last4": "8830", "type": "credit", "owner": "Manasa"},
+    {"name": "SBI Debit", "bank": "SBI", "last4": "2201", "type": "debit", "owner": "Common"},
+    {"name": "Ashok UPI", "bank": "GPay", "last4": "", "type": "upi", "owner": "Ashok"},
+    {"name": "Manasa UPI", "bank": "PhonePe", "last4": "", "type": "upi", "owner": "Manasa"},
+    {"name": "Cash", "bank": "", "last4": "", "type": "cash", "owner": "Common"},
+]
+
+APPLIANCES = [
+    {"name": "Geyser (Master bath)", "location": "Master bathroom", "service_interval_months": 12, "notes": "Racold 25L"},
+    {"name": "Split AC (Bedroom)", "location": "Bedroom", "service_interval_months": 6, "notes": "Daikin 1.5T"},
+    {"name": "Water Purifier", "location": "Kitchen", "service_interval_months": 4, "notes": "Kent RO — change filter"},
+    {"name": "Washing Machine", "location": "Utility", "service_interval_months": 12, "notes": "IFB front load"},
+    {"name": "Refrigerator", "location": "Kitchen", "service_interval_months": 12, "notes": "Samsung 253L"},
+    {"name": "Chimney", "location": "Kitchen", "service_interval_months": 6, "notes": "Faber — deep clean"},
 ]
 
 RECIPES = [
@@ -162,33 +183,74 @@ GROCERY = [
 ]
 
 CHORES = [
-    {"title": "Water the plants", "assignee": "Shared", "frequency": "Daily", "due_date": None},
-    {"title": "Pay electricity bill", "assignee": "Husband", "frequency": "Monthly", "due_date": None},
-    {"title": "Grocery run", "assignee": "Wife", "frequency": "Weekly", "due_date": None},
-    {"title": "Wash curtains", "assignee": "Shared", "frequency": "Seasonal", "due_date": None},
+    {"title": "Water the plants", "assignee": "Common", "frequency": "Daily", "due_date": None, "area": "household"},
+    {"title": "Pay electricity bill", "assignee": "Ashok", "frequency": "Monthly", "due_date": None, "area": "household"},
+    {"title": "Grocery run", "assignee": "Manasa", "frequency": "Weekly", "due_date": None, "area": "household"},
+    {"title": "Wash curtains", "assignee": "Common", "frequency": "Seasonal", "due_date": None, "area": "household"},
+    {"title": "Prep breakfast batter", "assignee": "Manasa", "frequency": "Daily", "due_date": None, "area": "cooking"},
+    {"title": "Clean the chimney filter", "assignee": "Ashok", "frequency": "Monthly", "due_date": None, "area": "cooking"},
+    {"title": "Restock spice jars", "assignee": "Common", "frequency": "Weekly", "due_date": None, "area": "cooking"},
 ]
 
 
 async def seed() -> None:
     await ensure_indexes()
 
-    # --- one-time migration: reserved-domain .local emails broke login validation ---
-    old = await db.users.delete_many({"email": {"$in": ["husband@homeboard.local", "wife@homeboard.local"]}})
-    if old.deleted_count:
-        await db.sessions.delete_many({})  # sessions referenced the old user ids
+    if os.environ.get("RESET") == "1":
+        for coll in (
+            "users", "sessions", "expenses", "incomes", "budgets", "allowances", "cards",
+            "appliances", "service_records", "recipes", "menu_entries", "grocery_items",
+            "chores", "copilot_messages",
+        ):
+            await db[coll].delete_many({})
+        await ensure_indexes()
+        print("reset: household data cleared")
 
-    # --- members (skip if any user exists) ---
-    if await db.users.count_documents({}) == 0:
-        for m in MEMBERS:
-            await db.users.insert_one(
-                {
+    # --- drop any legacy demo accounts; the two real logins are canonical ---
+    legacy = await db.users.delete_many(
+        {"email": {"$nin": [m["email"] for m in MEMBERS]}}
+    )
+    if legacy.deleted_count:
+        await db.sessions.delete_many({})
+        print(f"removed {legacy.deleted_count} legacy account(s)")
+
+    # --- members (upsert so the password is always the canonical one) ---
+    for m in MEMBERS:
+        await db.users.update_one(
+            {"email": m["email"]},
+            {
+                "$set": {
                     "id": m["email"],
                     "name": m["name"],
                     "email": m["email"],
                     "password_hash": hash_password(m["password"]),
                 }
-            )
-        print(f"seeded {len(MEMBERS)} members")
+            },
+            upsert=True,
+        )
+    print(f"ensured {len(MEMBERS)} members")
+
+    # --- payment sources ---
+    if await db.cards.count_documents({}) == 0:
+        now = datetime.now(timezone.utc)
+        await db.cards.insert_many(
+            [
+                {**c, "id": f"card-{i}", "created_at": now + timedelta(seconds=i)}
+                for i, c in enumerate(CARDS)
+            ]
+        )
+        print(f"seeded {len(CARDS)} payment sources")
+
+    # --- appliances ---
+    if await db.appliances.count_documents({}) == 0:
+        now = datetime.now(timezone.utc)
+        today = today_iso()
+        docs = []
+        for i, a in enumerate(APPLIANCES):
+            last = f"{int(today[:4]) - (1 if i % 2 else 0)}-{str(((i * 3) % 12) + 1).zfill(2)}-12"
+            docs.append({**a, "id": f"appliance-{i}", "last_serviced_on": last, "created_at": now + timedelta(seconds=i)})
+        await db.appliances.insert_many(docs)
+        print(f"seeded {len(docs)} appliances")
 
     # --- recipes ---
     if await db.recipes.count_documents({}) == 0:
@@ -197,43 +259,51 @@ async def seed() -> None:
         for r in RECIPES:
             doc = {**r}
             doc["id"] = doc["name"].lower().replace(" ", "-").replace("(", "").replace(")", "")
-            doc["created_by"] = "Husband"
+            doc["created_by"] = "Ashok"
             doc["created_at"] = now
             docs.append(doc)
         await db.recipes.insert_many(docs)
         print(f"seeded {len(docs)} recipes")
 
-    # --- budget + income + expenses for the current month ---
     month = today_iso()[:7]
+
     if await db.budgets.count_documents({}) == 0:
         await db.budgets.insert_one({"id": f"budget-{month}", "month": month, "amount": 60000.0})
         print("seeded budget")
 
+    if await db.allowances.count_documents({}) == 0:
+        await db.allowances.insert_one({"id": f"allowance-{month}", "month": month, "amount": 15000.0})
+        print("seeded personal fund (₹15,000)")
+
     if await db.incomes.count_documents({}) == 0:
+        now = datetime.now(timezone.utc)
         await db.incomes.insert_many(
             [
-                {"id": "inc-salary-1", "source": "Salary (Husband)", "amount": 120000.0, "date": f"{month}-01", "month": month, "created_at": datetime.now(timezone.utc)},
-                {"id": "inc-salary-2", "source": "Salary (Wife)", "amount": 85000.0, "date": f"{month}-01", "month": month, "created_at": datetime.now(timezone.utc)},
-                {"id": "inc-rental", "source": "Rental income", "amount": 15000.0, "date": f"{month}-05", "month": month, "created_at": datetime.now(timezone.utc)},
+                {"id": "inc-ashok", "source": "Ashok — Salary", "source_type": "ashok", "amount": 145000.0, "date": f"{month}-01", "month": month, "created_at": now},
+                {"id": "inc-manasa", "source": "Manasa — Salary", "source_type": "manasa", "amount": 98000.0, "date": f"{month}-01", "month": month, "created_at": now},
+                {"id": "inc-rental", "source": "Flat rent", "source_type": "rental", "amount": 22000.0, "date": f"{month}-05", "month": month, "created_at": now},
+                {"id": "inc-other", "source": "FD interest", "source_type": "other", "amount": 6500.0, "date": f"{month}-07", "month": month, "created_at": now},
             ]
         )
-        print("seeded income")
+        print("seeded income (Ashok / Manasa / rental / other)")
 
     if await db.expenses.count_documents({}) == 0:
         today = today_iso()
         rows = [
-            ("Groceries", 2480.0, "Weekly vegetable + provision run", "Wife"),
-            ("Dining Out", 1450.0, "Saturday biryani night", "Husband"),
-            ("Utilities", 2100.0, "Electricity bill", "Husband"),
-            ("Transport", 650.0, "Auto + fuel", "Shared"),
-            ("Groceries", 1320.0, "Milk, curd, paneer", "Wife"),
-            ("Healthcare", 900.0, "Pharmacy", "Wife"),
-            ("Home Maintenance", 3200.0, "Plumber visit", "Husband"),
-            ("Misc", 400.0, "Temple offering", "Shared"),
+            ("Groceries", 2480.0, "Weekly vegetable + provision run", "Manasa", "card-1", "ICICI Amazon Pay", False),
+            ("Dining Out", 1450.0, "Saturday biryani night", "Ashok", "card-0", "HDFC Regalia", False),
+            ("Utilities", 2100.0, "Electricity bill", "Ashok", "card-0", "HDFC Regalia", False),
+            ("Transport", 650.0, "Auto + fuel", "Common", "card-3", "Ashok UPI", False),
+            ("Groceries", 1320.0, "Milk, curd, paneer", "Manasa", "card-4", "Manasa UPI", False),
+            ("Healthcare", 900.0, "Pharmacy", "Manasa", "card-2", "SBI Debit", False),
+            ("Home Maintenance", 3200.0, "Plumber visit", "Ashok", "card-5", "Cash", False),
+            ("Personal", 1800.0, "Ashok — books & coffee", "Ashok", "card-3", "Ashok UPI", True),
+            ("Personal", 2400.0, "Manasa — salon", "Manasa", "card-4", "Manasa UPI", True),
+            ("Kids", 1500.0, "Stationery", "Common", "card-1", "ICICI Amazon Pay", False),
         ]
         docs = []
-        for i, (cat, amt, note, member) in enumerate(rows):
-            date = min(today, f"{month}-{str(3 + i * 3).zfill(2)}")
+        for i, (cat, amt, note, member, sid, slabel, personal) in enumerate(rows):
+            date = min(today, f"{month}-{str(2 + i * 2).zfill(2)}")
             docs.append(
                 {
                     "id": f"exp-seed-{i}",
@@ -243,6 +313,9 @@ async def seed() -> None:
                     "date": date,
                     "month": month,
                     "member": member,
+                    "source_id": sid,
+                    "source_label": slabel,
+                    "is_personal": personal,
                     "created_by": member,
                     "created_at": datetime.now(timezone.utc) + timedelta(minutes=i),
                 }
@@ -250,7 +323,6 @@ async def seed() -> None:
         await db.expenses.insert_many(docs)
         print(f"seeded {len(docs)} expenses")
 
-    # --- menu for today + tomorrow ---
     if await db.menu_entries.count_documents({}) == 0:
         today = today_iso()
         tomorrow = (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d")
@@ -266,6 +338,8 @@ async def seed() -> None:
         now = datetime.now(timezone.utc)
         for i, (slot, recipe_id, servings, date, notes) in enumerate(entries):
             recipe = await db.recipes.find_one({"id": recipe_id})
+            if not recipe:
+                continue
             docs.append(
                 {
                     "id": f"menu-{i}-{date}",
@@ -278,10 +352,10 @@ async def seed() -> None:
                     "created_at": now + timedelta(minutes=i),
                 }
             )
-        await db.menu_entries.insert_many(docs)
-        print(f"seeded {len(docs)} menu entries")
+        if docs:
+            await db.menu_entries.insert_many(docs)
+            print(f"seeded {len(docs)} menu entries")
 
-    # --- grocery items ---
     if await db.grocery_items.count_documents({}) == 0:
         now = datetime.now(timezone.utc)
         await db.grocery_items.insert_many(
@@ -292,7 +366,6 @@ async def seed() -> None:
         )
         print("seeded grocery items")
 
-    # --- chores ---
     if await db.chores.count_documents({}) == 0:
         now = datetime.now(timezone.utc)
         await db.chores.insert_many(
@@ -301,7 +374,7 @@ async def seed() -> None:
                 for i, c in enumerate(CHORES)
             ]
         )
-        print("seeded chores")
+        print("seeded chores (cooking + household)")
 
     print("seed complete")
 

@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Optional
 import uuid
 
 from pydantic import BaseModel, Field
@@ -20,7 +20,10 @@ class ExpenseCreate(BaseModel):
     category: str = Field(min_length=1)
     note: str = ""
     date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
-    member: str = "Shared"
+    member: str = "Common"  # Ashok | Manasa | Common
+    source_id: Optional[str] = None  # card id | upi-ashok | upi-manasa | cash
+    source_label: str = ""
+    is_personal: bool = False  # counts against the month's personal fund
 
 
 class Expense(BaseModel):
@@ -30,7 +33,10 @@ class Expense(BaseModel):
     note: str = ""
     date: str
     month: str  # YYYY-MM, derived from date
-    member: str = "Shared"
+    member: str = "Common"
+    source_id: Optional[str] = None
+    source_label: str = ""
+    is_personal: bool = False
     created_by: str = ""
     created_at: datetime = Field(default_factory=_now)
 
@@ -39,6 +45,7 @@ class Expense(BaseModel):
 
 class IncomeCreate(BaseModel):
     source: str = Field(min_length=1)
+    source_type: str = "other"  # ashok | manasa | rental | other
     amount: float = Field(gt=0)
     date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
 
@@ -46,13 +53,14 @@ class IncomeCreate(BaseModel):
 class Income(BaseModel):
     id: str = Field(default_factory=_uuid)
     source: str
+    source_type: str = "other"
     amount: float
     date: str
     month: str
     created_at: datetime = Field(default_factory=_now)
 
 
-# ---------- Budget ----------
+# ---------- Budget & allowance ----------
 
 class BudgetSet(BaseModel):
     month: str = Field(pattern=r"^\d{4}-\d{2}$")
@@ -65,7 +73,18 @@ class Budget(BaseModel):
     amount: float
 
 
-# ---------- Summary ----------
+class AllowanceSet(BaseModel):
+    month: str = Field(pattern=r"^\d{4}-\d{2}$")
+    amount: float = Field(ge=0)
+
+
+class Allowance(BaseModel):
+    id: str = Field(default_factory=_uuid)
+    month: str
+    amount: float
+
+
+# ---------- Summary / dashboard ----------
 
 class CategoryTotal(BaseModel):
     category: str
@@ -80,3 +99,42 @@ class FinanceSummary(BaseModel):
     remaining: float
     by_category: List[CategoryTotal]
     recent_expenses: List[Expense]
+
+
+class IncomeBreakdown(BaseModel):
+    ashok: float = 0.0
+    manasa: float = 0.0
+    rental: float = 0.0
+    other: float = 0.0
+    total: float = 0.0
+
+
+class PersonalFund(BaseModel):
+    allowance: float  # total fund across the scope (per member when scope=month)
+    ashok_used: float = 0.0
+    manasa_used: float = 0.0
+
+
+class CardSpend(BaseModel):
+    card_id: Optional[str] = None
+    name: str
+    bank: str = ""
+    last4: str = ""
+    type: str = ""
+    owner: str = ""
+    total: float = 0.0
+    by_member: dict[str, float] = {}
+
+
+class DashboardData(BaseModel):
+    scope: str  # month | fy | cal
+    key: str
+    label: str
+    income: IncomeBreakdown
+    expense_total: float = 0.0
+    budget: float = 0.0
+    remaining: float = 0.0
+    by_category: List[CategoryTotal] = []
+    personal: PersonalFund
+    cards: List[CardSpend] = []
+    recent_expenses: List[Expense] = []

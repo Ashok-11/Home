@@ -139,13 +139,13 @@ export default function MenuPlanner() {
               disabled={aiFill.isPending || (recipes.data?.length ?? 0) === 0}
               onClick={() => aiFill.mutate()}
             >
-              <WandSparkles className="h-4 w-4 text-[#C85A32]" /> {aiFill.isPending ? "Planning…" : "AI week menu"}
+              <WandSparkles className="h-4 w-4 text-[#D0663C]" /> {aiFill.isPending ? "Planning…" : "AI week menu"}
             </Button>
             <Button
               data-testid="menu-generate-grocery-button"
               disabled={genGrocery.isPending}
               onClick={() => genGrocery.mutate()}
-              className="bg-[#245C3F] text-white hover:bg-[#1E4A33]"
+              className="bg-[#1E4030] text-white hover:bg-[#23492F]"
             >
               <ShoppingBasket className="h-4 w-4" /> Generate grocery list
             </Button>
@@ -154,7 +154,7 @@ export default function MenuPlanner() {
       />
 
       {recipes.data && recipes.data.length === 0 && (
-        <p className="mb-4 rounded-xl border border-[#C85A32]/40 bg-[#FDF0EB] px-4 py-3 text-sm text-[#5C200C]">
+        <p className="mb-4 rounded-xl border border-[#D0663C]/40 bg-[#FDF0EB] px-4 py-3 text-sm text-[#5C200C]">
           Add a few recipes to the vault first — then slot them here.
         </p>
       )}
@@ -163,10 +163,10 @@ export default function MenuPlanner() {
         {days.map((date) => {
           const isToday = date === todayIso();
           return (
-            <Card key={date} className={`rounded-2xl p-4 ${isToday ? "border-2 border-[#C85A32]/60" : ""}`} data-testid="menu-day-card">
+            <Card key={date} className={`rounded-2xl p-4 ${isToday ? "border-2 border-[#D0663C]/60" : ""}`} data-testid="menu-day-card">
               <p className="font-heading text-base font-semibold" data-testid="menu-day-label">
                 {formatDate(date)}
-                {isToday && <span className="ml-2 rounded-full bg-[#C85A32] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Today</span>}
+                {isToday && <span className="ml-2 rounded-full bg-[#D0663C] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">Today</span>}
               </p>
               <div className="mt-3 grid gap-2">
                 {SLOTS.map((slot) => {
@@ -275,7 +275,7 @@ export default function MenuPlanner() {
               data-testid="menu-entry-save-button"
               disabled={saveEntry.isPending || (!picker?.entry && !recipeId)}
               onClick={() => saveEntry.mutate()}
-              className="bg-[#C85A32] text-white hover:bg-[#B24C26]"
+              className="bg-[#D0663C] text-white hover:bg-[#B8552F]"
             >
               Save
             </Button>

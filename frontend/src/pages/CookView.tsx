@@ -35,12 +35,12 @@ export default function CookView() {
   return (
     <div className="min-h-svh bg-[#FBF7EE]">
       {/* hero header */}
-      <div className="relative overflow-hidden bg-[#112217]">
+      <div className="relative overflow-hidden bg-[#14261B]">
         <img src={HERO_IMAGES.cook} alt="" className="absolute inset-0 h-full w-full object-cover opacity-40" />
-        <div className="absolute inset-0 bg-gradient-to-b from-[#112217]/85 to-[#112217]/95" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#14261B]/85 to-[#14261B]/95" />
         <div className="relative mx-auto max-w-5xl px-4 py-10 text-center sm:px-6">
-          <p className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#E88A68]">
-            <Steam className="text-[#E88A68]" /> Today's cooking plan
+          <p className="flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-[#E4B45A]">
+            <Steam className="text-[#E4B45A]" /> Today's cooking plan
           </p>
           <h1 className="mt-3 font-heading text-4xl font-bold text-[#FBF7EE] sm:text-5xl" data-testid="cook-date-heading">
             {formatDate(date)}
@@ -74,7 +74,7 @@ export default function CookView() {
               if (entries.length === 0) return null;
               return (
                 <section key={slot.value}>
-                  <h2 className="mb-3 font-heading text-2xl font-semibold text-[#245C3F]" data-testid="cook-slot-heading">
+                  <h2 className="mb-3 font-heading text-2xl font-semibold text-[#1E4030]" data-testid="cook-slot-heading">
                     {slot.label}
                   </h2>
                   <div className="grid gap-4 lg:grid-cols-2">
@@ -134,7 +134,7 @@ export default function CookView() {
                                           done ? "bg-[#EBF2EC] text-[#7FB08F] line-through" : "bg-[#F5F3EF] text-[#1C1917] hover:bg-[#F3ECE0]"
                                         }`}
                                       >
-                                        <span className={`font-display-num font-semibold ${done ? "text-[#7FB08F]" : "text-[#C85A32]"}`}>
+                                        <span className={`font-display-num font-semibold ${done ? "text-[#7FB08F]" : "text-[#D0663C]"}`}>
                                           {i + 1}.
                                         </span>
                                         {step}
@@ -167,7 +167,7 @@ export default function CookView() {
         )}
 
         <div className="mt-10 text-center">
-          <Link to="/login" data-testid="cook-login-link" className="text-sm font-medium text-[#C85A32] hover:underline">
+          <Link to="/login" data-testid="cook-login-link" className="text-sm font-medium text-[#D0663C] hover:underline">
             Household member? Sign in to manage the plan →
           </Link>
         </div>
