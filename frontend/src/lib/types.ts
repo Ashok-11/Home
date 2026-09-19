@@ -78,10 +78,19 @@ export interface CardSpend {
   by_member: Record<string, number>;
 }
 
+export interface IncomeSourceTotal {
+  source: string;
+  source_type: string;
+  total: number;
+}
+
 export interface DashboardData {
   scope: string;
   key: string;
   label: string;
+  view: string;
+  budget_by_member: Record<string, number>;
+  income_by_source: IncomeSourceTotal[];
   income: IncomeBreakdown;
   expense_total: number;
   budget: number;
@@ -114,11 +123,40 @@ export interface Ingredient {
   name: string;
 }
 
+export interface Category {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface Aisle {
+  id: string;
+  name: string;
+  created_at: string;
+}
+
+export interface Timing {
+  id: string;
+  name: string;
+  order: number;
+  created_at: string;
+}
+
+export interface House {
+  id: string;
+  name: string;
+  address: string;
+  is_default: boolean;
+  created_at: string;
+}
+
 export interface Recipe {
   id: string;
   name: string;
   description: string;
   category: string;
+  image_url: string;
+  station: string;
   base_servings: number;
   prep_minutes: number;
   cook_minutes: number;
@@ -132,6 +170,8 @@ export interface RecipeDraft {
   name: string;
   description: string;
   category: string;
+  image_url: string;
+  station: string;
   base_servings: number;
   prep_minutes: number;
   cook_minutes: number;
@@ -142,7 +182,10 @@ export interface RecipeDraft {
 export interface MenuEntry {
   id: string;
   date: string;
-  slot: string;
+  timing_id: string;
+  timing_label: string;
+  timing_order: number;
+  station: string;
   recipe_id: string;
   recipe_name: string;
   servings: number;
@@ -150,16 +193,21 @@ export interface MenuEntry {
   created_at: string;
 }
 
+export type CookRecipe = Omit<Recipe, "created_by" | "created_at">;
+
 export interface CookEntry {
   id: string;
-  slot: string;
+  timing_id: string;
+  timing_label: string;
+  timing_order: number;
   servings: number;
   notes: string;
-  recipe: Recipe | null;
+  recipe: CookRecipe | null;
 }
 
 export interface CookMenu {
   date: string;
+  station: string;
   entries: CookEntry[];
 }
 

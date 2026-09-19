@@ -5,6 +5,7 @@ import { CalendarClock, Plus, Trash2, Wrench } from "lucide-react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { formatDate, formatINR, todayIso } from "@/lib/format";
 import { CHORE_AREAS, FREQUENCIES, MEMBERS, WEEKDAYS } from "@/lib/constants";
+import { useHouses } from "@/lib/config";
 import type { Appliance, Chore } from "@/lib/types";
 import { BackgroundBlobs, PageHeader } from "@/components/decor";
 import { Badge } from "@/components/ui/badge";
@@ -67,8 +68,43 @@ export default function Chores() {
   const [sCost, setSCost] = useState("");
   const [sNotes, setSNotes] = useState("");
 
+  const houses = useHouses();
+  const [houseId, setHouseId] = useState<string>("");
+  const activeHouse = houseId || houses.data?.find((h) => h.is_default)?.id || houses.data?.[0]?.id || "";
+  const [newHouse, setNewHouse] = useState("");
+
   const chores = useQuery({ queryKey: ["chores"], queryFn: () => apiGet<Chore[]>("/chores") });
-  const appliances = useQuery({ queryKey: ["appliances"], queryFn: () => apiGet<Appliance[]>("/appliances") });
+  const appliances = useQuery({
+    queryKey: ["appliances", activeHouse],
+    queryFn: () => apiGet<Appliance[]>(activeHouse ? `/appliances?house_id=${activeHouse}` : "/appliances"),
+  });
+
+  const addHouse = useMutation({
+    mutationFn: () => apiPost("/houses", { name: newHouse.trim(), address: "", is_default: false }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["houses"] });
+      setNewHouse("");
+      toast.success("House added");
+    },
+    onError: (err) => toast.error(`Could not add: ${err.message}`),
+  });
+
+  const makeDefault = useMutation({
+    mutationFn: (id: string) => apiPost(`/houses/${id}/default`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["houses"] });
+      toast.success("Default house set");
+    },
+  });
+
+  const removeHouse = useMutation({
+    mutationFn: (id: string) => apiDelete<void>(`/houses/${id}`),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["houses"] });
+      qc.invalidateQueries({ queryKey: ["appliances"] });
+      toast.success("House removed");
+    },
+  });
 
   const invalidateChores = () => qc.invalidateQueries({ queryKey: ["chores"] });
   const invalidateAppliances = () => qc.invalidateQueries({ queryKey: ["appliances"] });
@@ -115,6 +151,7 @@ export default function Chores() {
     mutationFn: () =>
       apiPost<Appliance>("/appliances", {
         name: aName,
+        house_id: activeHouse || null,
         location: aLocation,
         service_interval_months: Number(aInterval) || 6,
         last_serviced_on: aLast || null,
@@ -237,6 +274,9 @@ export default function Chores() {
           <TabsTrigger value="service" data-testid="chores-tab-service">
             Service history
           </TabsTrigger>
+          <TabsTrigger value="houses" data-testid="chores-tab-houses">
+            Houses
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="household" className="mt-4">
@@ -244,6 +284,22 @@ export default function Chores() {
         </TabsContent>
 
         <TabsContent value="service" className="mt-4">
+          <div className="glass mb-4 flex flex-wrap items-center gap-3 rounded-2xl p-3">
+            <span className="text-sm font-medium">House</span>
+            <select
+              data-testid="service-house-select"
+              value={activeHouse}
+              onChange={(e) => setHouseId(e.target.value)}
+              className="h-9 rounded-lg border border-input bg-card px-3 text-sm"
+            >
+              {(houses.data ?? []).map((h) => (
+                <option key={h.id} value={h.id}>
+                  {h.name}
+                  {h.is_default ? " (default)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             {(appliances.data ?? []).map((a, idx) => (
               <Card
@@ -323,6 +379,50 @@ export default function Chores() {
               <p className="mt-1 text-sm text-muted-foreground">Add the geyser, AC, purifier… and never miss a service.</p>
             </div>
           )}
+        </TabsContent>
+        <TabsContent value="houses" className="mt-4">
+          <div className="glass mb-4 flex flex-wrap items-end gap-2 rounded-2xl p-4">
+            <div className="grid flex-1 gap-1.5">
+              <Label htmlFor="house-name">Add a house</Label>
+              <Input
+                id="house-name"
+                data-testid="house-name-input"
+                value={newHouse}
+                onChange={(e) => setNewHouse(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && newHouse.trim() && addHouse.mutate()}
+                placeholder="Farm house, Parents' house…"
+              />
+            </div>
+            <Button data-testid="house-add-button" disabled={!newHouse.trim() || addHouse.isPending} onClick={() => addHouse.mutate()} className="bg-[#D0663C] text-white hover:bg-[#B8552F]">
+              <Plus className="h-4 w-4" /> Add
+            </Button>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {(houses.data ?? []).map((h) => (
+              <Card key={h.id} className={`card-lift rounded-2xl p-5 ${h.is_default ? "gold-edge" : ""}`} data-testid="house-card">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="font-heading text-lg font-semibold" data-testid="house-card-name">
+                      {h.name}
+                    </h3>
+                    {h.is_default && (
+                      <span className="mt-1 inline-block rounded-full bg-[#F1E9DA] px-2 py-0.5 text-[11px] font-semibold text-[#6B5426]" data-testid="house-default-badge">
+                        Default
+                      </span>
+                    )}
+                  </div>
+                  <Button variant="ghost" size="icon-xs" data-testid="house-delete-button" onClick={() => removeHouse.mutate(h.id)}>
+                    <Trash2 className="h-3.5 w-3.5 text-[#B93826]" />
+                  </Button>
+                </div>
+                {!h.is_default && (
+                  <Button variant="outline" size="sm" className="mt-3" data-testid="house-set-default-button" onClick={() => makeDefault.mutate(h.id)}>
+                    Make default
+                  </Button>
+                )}
+              </Card>
+            ))}
+          </div>
         </TabsContent>
       </Tabs>
 

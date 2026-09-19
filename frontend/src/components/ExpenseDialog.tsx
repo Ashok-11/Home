@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { apiGet, apiPatch, apiPost } from "@/lib/api";
-import { CATEGORIES, MEMBERS } from "@/lib/constants";
+import { apiPatch, apiPost } from "@/lib/api";
+import { MEMBERS } from "@/lib/constants";
+import { useCards, useCategories } from "@/lib/config";
 import { todayIso } from "@/lib/format";
-import type { Card as PaymentCard, Expense } from "@/lib/types";
+import type { Expense } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -42,11 +43,8 @@ export default function ExpenseDialog({ open, onOpenChange, expense, defaultDate
   const [sourceId, setSourceId] = useState<string>("");
   const [isPersonal, setIsPersonal] = useState(false);
 
-  const cards = useQuery({
-    queryKey: ["cards"],
-    queryFn: () => apiGet<PaymentCard[]>("/cards"),
-    enabled: open,
-  });
+  const cards = useCards();
+  const categories = useCategories();
 
   useEffect(() => {
     if (open) {
@@ -129,9 +127,9 @@ export default function ExpenseDialog({ open, onOpenChange, expense, defaultDate
                   <SelectValue>{category}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
-                  {CATEGORIES.map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
+                  {(categories.data ?? []).map((c) => (
+                    <SelectItem key={c.id} value={c.name}>
+                      {c.name}
                     </SelectItem>
                   ))}
                 </SelectContent>

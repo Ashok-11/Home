@@ -19,7 +19,7 @@ def _now() -> datetime:
 
 class MenuEntryCreate(BaseModel):
     date: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
-    slot: str
+    timing_id: str
     recipe_id: str
     servings: int = Field(default=2, ge=1)
     notes: str = ""
@@ -27,7 +27,7 @@ class MenuEntryCreate(BaseModel):
 
 class MenuEntryUpdate(BaseModel):
     date: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
-    slot: Optional[str] = None
+    timing_id: Optional[str] = None
     servings: Optional[int] = Field(default=None, ge=1)
     notes: Optional[str] = None
 
@@ -35,7 +35,10 @@ class MenuEntryUpdate(BaseModel):
 class MenuEntry(BaseModel):
     id: str = Field(default_factory=_uuid)
     date: str
-    slot: str
+    timing_id: str = ""
+    timing_label: str = ""
+    timing_order: int = 0
+    station: str = "cook"
     recipe_id: str
     recipe_name: str  # denormalised so the cook view survives a deleted recipe
     servings: int
@@ -48,6 +51,8 @@ class MenuEntry(BaseModel):
 class CookRecipe(BaseModel):
     id: str
     name: str
+    image_url: str = ""
+    station: str = "cook"
     description: str = ""
     category: str = ""
     base_servings: int
@@ -59,7 +64,9 @@ class CookRecipe(BaseModel):
 
 class CookEntry(BaseModel):
     id: str
-    slot: str
+    timing_id: str = ""
+    timing_label: str = ""
+    timing_order: int = 0
     servings: int
     notes: str = ""
     recipe: Optional[CookRecipe] = None
@@ -67,4 +74,5 @@ class CookEntry(BaseModel):
 
 class CookMenu(BaseModel):
     date: str
+    station: str = "cook"
     entries: List[CookEntry]

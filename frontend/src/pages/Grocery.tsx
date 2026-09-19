@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { CheckCheck, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { addDays, todayIso } from "@/lib/format";
-import { AISLES } from "@/lib/constants";
+import { useAisles } from "@/lib/config";
 import type { GroceryItem } from "@/lib/types";
 import { BackgroundBlobs, PageHeader } from "@/components/decor";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,8 @@ import {
 
 export default function Grocery() {
   const qc = useQueryClient();
+  const aisles = useAisles();
+  const AISLE_NAMES = (aisles.data ?? []).map((a) => a.name);
   const [name, setName] = useState("");
   const [aisle, setAisle] = useState<string>("Spices & Staples");
 
@@ -104,7 +106,7 @@ export default function Grocery() {
               <SelectValue>{aisle}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {AISLES.map((a) => (
+              {AISLE_NAMES.map((a) => (
                 <SelectItem key={a} value={a}>
                   {a}
                 </SelectItem>
@@ -118,7 +120,7 @@ export default function Grocery() {
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-        {AISLES.map((a) => {
+        {[...AISLE_NAMES, "Other"].filter((a, i, arr) => arr.indexOf(a) === i).map((a) => {
           const items = byAisle(a);
           if (items.length === 0) return null;
           return (

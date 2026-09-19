@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Plus, ShoppingBasket, Trash2, WandSparkles } from "lucide-react";
 import { apiDelete, apiGet, apiPatch, apiPost } from "@/lib/api";
 import { addDays, formatDate, todayIso } from "@/lib/format";
-import { SLOTS, SLOT_LABELS } from "@/lib/constants";
+import { useTimings } from "@/lib/config";
 import type { MenuEntry, Recipe } from "@/lib/types";
 import { BackgroundBlobs, PageHeader } from "@/components/decor";
 import { Button } from "@/components/ui/button";
@@ -36,12 +36,14 @@ function mondayOf(iso: string): string {
 
 interface PickerState {
   date: string;
-  slot: string;
+  timingId: string;
   entry: MenuEntry | null;
 }
 
 export default function MenuPlanner() {
   const qc = useQueryClient();
+  const timings = useTimings();
+  const SLOTS = (timings.data ?? []).map((t) => ({ value: t.id, label: t.name }));
   const [weekStart, setWeekStart] = useState(() => mondayOf(todayIso()));
   const [picker, setPicker] = useState<PickerState | null>(null);
   const [recipeId, setRecipeId] = useState("");
@@ -67,7 +69,7 @@ export default function MenuPlanner() {
       if (picker?.entry) {
         return apiPatch<MenuEntry>(`/menu/${picker.entry.id}`, { servings: Number(servings), notes });
       }
-      return apiPost<MenuEntry>("/menu", { date: picker!.date, slot: picker!.slot, recipe_id: recipeId, servings: Number(servings), notes });
+      return apiPost<MenuEntry>("/menu", { date: picker!.date, timing_id: picker!.timingId, recipe_id: recipeId, servings: Number(servings), notes });
     },
     onSuccess: () => {
       invalidateMenu();
@@ -104,15 +106,15 @@ export default function MenuPlanner() {
     onError: (err) => toast.error(`Could not generate list: ${err.message}`),
   });
 
-  const openPicker = (date: string, slot: string, entry: MenuEntry | null) => {
-    setPicker({ date, slot, entry });
+  const openPicker = (date: string, timingId: string, entry: MenuEntry | null) => {
+    setPicker({ date, timingId, entry });
     setRecipeId(entry ? "" : (recipes.data?.[0]?.id ?? ""));
     setServings(String(entry?.servings ?? 2));
     setNotes(entry?.notes ?? "");
   };
 
-  const entriesBy = (date: string, slot: string) =>
-    (menu.data ?? []).filter((e) => e.date === date && e.slot === slot);
+  const entriesBy = (date: string, timingId: string) =>
+    (menu.data ?? []).filter((e) => e.date === date && e.timing_id === timingId);
 
   return (
     <div className="relative">
@@ -212,7 +214,7 @@ export default function MenuPlanner() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-heading">
-              {picker?.entry ? "Edit meal" : `Add to ${picker ? SLOT_LABELS[picker.slot] : ""} · ${picker ? formatDate(picker.date) : ""}`}
+              {picker?.entry ? "Edit meal" : `Add to ${SLOTS.find((x) => x.value === picker?.timingId)?.label ?? ""} · ${picker ? formatDate(picker.date) : ""}`}
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-4 py-2">

@@ -16,6 +16,7 @@ from lib.dates import today_iso
 from lib.session import require_user
 from models.finance import (
     Allowance,
+    IncomeSourceTotal,
     AllowanceSet,
     Budget,
     BudgetSet,
@@ -140,33 +141,46 @@ async def delete_income(income_id: str, _: dict = Depends(require_user)):
 
 # ---------- Budget & personal allowance ----------
 
+@router.get("/budgets", response_model=list[Budget])
+async def list_budgets(month: Optional[str] = None, _: dict = Depends(require_user)):
+    query = {"month": month} if month else {}
+    docs = await db.budgets.find(query).to_list(500)
+    return [Budget(**{**d, "member": d.get("member", "Common")}) for d in docs]
+
+
 @router.put("/budget", response_model=Budget)
 async def set_budget(body: BudgetSet, _: dict = Depends(require_user)):
-    existing = await db.budgets.find_one({"month": body.month})
+    """One budget per (month, member) — each of us can hold our own monthly budget."""
+    key = {"month": body.month, "member": body.member}
+    existing = await db.budgets.find_one(key)
     if existing:
-        await db.budgets.update_one({"month": body.month}, {"$set": {"amount": body.amount}})
-        return Budget(id=existing["id"], month=body.month, amount=body.amount)
-    doc = Budget(month=body.month, amount=body.amount)
+        await db.budgets.update_one(key, {"$set": {"amount": body.amount}})
+        return Budget(id=existing["id"], month=body.month, amount=body.amount, member=body.member)
+    doc = Budget(month=body.month, amount=body.amount, member=body.member)
     await db.budgets.insert_one(doc.model_dump())
     return doc
 
 
 @router.get("/allowance", response_model=Allowance)
-async def get_allowance(month: Optional[str] = None, _: dict = Depends(require_user)):
+async def get_allowance(month: Optional[str] = None, member: str = "Common", _: dict = Depends(require_user)):
     month = month or today_iso()[:7]
-    doc = await db.allowances.find_one({"month": month})
+    doc = await db.allowances.find_one({"month": month, "member": member})
     if doc:
-        return Allowance(**doc)
-    return Allowance(id=f"default-{month}", month=month, amount=DEFAULT_ALLOWANCE)
+        return Allowance(**{**doc, "member": doc.get("member", "Common")})
+    legacy = await db.allowances.find_one({"month": month, "member": {"$exists": False}})
+    if legacy:
+        return Allowance(**{**legacy, "member": member})
+    return Allowance(id=f"default-{month}-{member}", month=month, amount=DEFAULT_ALLOWANCE, member=member)
 
 
 @router.put("/allowance", response_model=Allowance)
 async def set_allowance(body: AllowanceSet, _: dict = Depends(require_user)):
-    existing = await db.allowances.find_one({"month": body.month})
+    key = {"month": body.month, "member": body.member}
+    existing = await db.allowances.find_one(key)
     if existing:
-        await db.allowances.update_one({"month": body.month}, {"$set": {"amount": body.amount}})
-        return Allowance(id=existing["id"], month=body.month, amount=body.amount)
-    doc = Allowance(month=body.month, amount=body.amount)
+        await db.allowances.update_one(key, {"$set": {"amount": body.amount}})
+        return Allowance(id=existing["id"], month=body.month, amount=body.amount, member=body.member)
+    doc = Allowance(month=body.month, amount=body.amount, member=body.member)
     await db.allowances.insert_one(doc.model_dump())
     return doc
 
@@ -212,7 +226,20 @@ async def finance_summary(month: Optional[str] = None, _: dict = Depends(require
 # ---------- Scoped dashboard ----------
 
 @router.get("/dashboard", response_model=DashboardData)
-async def dashboard(scope: str = "month", key: Optional[str] = None, _: dict = Depends(require_user)):
+async def dashboard(
+    scope: str = "month",
+    key: Optional[str] = None,
+    view: str = "combined",
+    user: dict = Depends(require_user),
+):
+    """view=personal -> only the signed-in member + Common rows. view=combined -> everything."""
+    if view not in ("personal", "combined"):
+        raise HTTPException(status_code=422, detail="view must be personal or combined")
+    me = user["name"]
+    visible_members = {me, "Common"} if view == "personal" else set(MEMBERS)
+    income_kinds = (
+        {me.lower(), "rental", "other"} if view == "personal" else {"ashok", "manasa", "rental", "other"}
+    )
     today = today_iso()
     if not key:
         if scope == "month":
@@ -224,8 +251,14 @@ async def dashboard(scope: str = "month", key: Optional[str] = None, _: dict = D
             key = today[:4]
     months = months_in_scope(scope, key)
 
-    income_docs = await db.incomes.find({"month": {"$in": months}}).to_list(2000)
-    expense_docs = await db.expenses.find({"month": {"$in": months}}).to_list(20000)
+    income_docs = [
+        i for i in await db.incomes.find({"month": {"$in": months}}).to_list(2000)
+        if i.get("source_type", "other") in income_kinds
+    ]
+    expense_docs = [
+        e for e in await db.expenses.find({"month": {"$in": months}}).to_list(20000)
+        if e.get("member", "Common") in visible_members
+    ]
     budget_docs = await db.budgets.find({"month": {"$in": months}}).to_list(200)
     allowance_docs = await db.allowances.find({"month": {"$in": months}}).to_list(200)
     card_docs = await db.cards.find().to_list(200)
@@ -248,11 +281,33 @@ async def dashboard(scope: str = "month", key: Optional[str] = None, _: dict = D
         setattr(income, field, round(getattr(income, field), 2))
 
     expense_total = round(sum(e["amount"] for e in expense_docs), 2)
+    budget_docs = [b for b in budget_docs if b.get("member", "Common") in visible_members]
     budget = round(sum(b["amount"] for b in budget_docs), 2)
+    budget_by_member: dict[str, float] = {}
+    for b in budget_docs:
+        m = b.get("member", "Common")
+        budget_by_member[m] = round(budget_by_member.get(m, 0.0) + b["amount"], 2)
+
+    # income rows exactly as entered on the Budget & Income page
+    income_rows: dict[tuple[str, str], float] = {}
+    for i in income_docs:
+        k = (i["source"], i.get("source_type", "other"))
+        income_rows[k] = round(income_rows.get(k, 0.0) + i["amount"], 2)
+    income_by_source = sorted(
+        (IncomeSourceTotal(source=s_, source_type=t, total=v) for (s_, t), v in income_rows.items()),
+        key=lambda r: -r.total,
+    )
 
     # personal fund: per-member allowance for every month in scope (default 15k each)
-    set_by_month = {a["month"]: a["amount"] for a in allowance_docs}
-    allowance_total = round(sum(set_by_month.get(m, DEFAULT_ALLOWANCE) for m in months), 2)
+    fund_members = [m for m in ("Ashok", "Manasa") if m in visible_members] or ["Ashok", "Manasa"]
+    by_key = {(a["month"], a.get("member", "Common")): a["amount"] for a in allowance_docs}
+    allowance_total = 0.0
+    for m in months:
+        for member in fund_members:
+            allowance_total += by_key.get(
+                (m, member), by_key.get((m, "Common"), DEFAULT_ALLOWANCE)
+            )
+    allowance_total = round(allowance_total, 2)
     personal = PersonalFund(allowance=allowance_total)
     for e in expense_docs:
         if not e.get("is_personal"):
@@ -319,6 +374,9 @@ async def dashboard(scope: str = "month", key: Optional[str] = None, _: dict = D
         scope=scope,
         key=key,
         label=scope_label(scope, key),
+        view=view,
+        budget_by_member=budget_by_member,
+        income_by_source=income_by_source,
         income=income,
         expense_total=expense_total,
         budget=budget,

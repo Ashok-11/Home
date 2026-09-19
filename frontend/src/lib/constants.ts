@@ -49,17 +49,6 @@ export const AISLES = [
   "Other",
 ] as const;
 
-export const SLOTS = [
-  { value: "breakfast", label: "Breakfast" },
-  { value: "lunch", label: "Lunch" },
-  { value: "snacks", label: "Evening Snacks" },
-  { value: "dinner", label: "Dinner" },
-] as const;
-
-export const SLOT_LABELS: Record<string, string> = Object.fromEntries(
-  SLOTS.map((s) => [s.value, s.label]),
-);
-
 export const UNITS = ["g", "kg", "ml", "l", "tbsp", "tsp", "cup", "piece", "pinch"] as const;
 
 export const CHART_COLORS = ["#1E4030", "#D0663C", "#E4B45A", "#3D7B80", "#87537D", "#758E4F"];

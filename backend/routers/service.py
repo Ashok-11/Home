@@ -30,8 +30,9 @@ def add_months(iso: str, months: int) -> str:
 
 
 @router.get("/appliances", response_model=list[ApplianceWithStatus])
-async def list_appliances(_: dict = Depends(require_user)):
-    docs = await db.appliances.find().sort([("created_at", ASCENDING)]).to_list(300)
+async def list_appliances(house_id: str | None = None, _: dict = Depends(require_user)):
+    query = {"house_id": house_id} if house_id else {}
+    docs = await db.appliances.find(query).sort([("created_at", ASCENDING)]).to_list(300)
     today = today_iso()
     out: list[ApplianceWithStatus] = []
     for doc in docs:

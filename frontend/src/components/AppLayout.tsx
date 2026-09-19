@@ -4,7 +4,7 @@ import { useTheme } from "next-themes";
 import {
   CalendarDays,
   CheckSquare,
-  CookingPot,
+  Settings2,
   CreditCard,
   ExternalLink,
   LayoutDashboard,
@@ -29,12 +29,12 @@ const NAV = [
   { name: "Daily Expenses", path: "/expenses", icon: Receipt, testid: "nav-expenses" },
   { name: "Budget & Income", path: "/budget", icon: WalletCards, testid: "nav-budget" },
   { name: "Cards & Sources", path: "/cards", icon: CreditCard, testid: "nav-cards" },
-  { name: "Kitchen Board", path: "/kitchen", icon: CookingPot, testid: "nav-kitchen" },
   { name: "Menu Planner", path: "/menu", icon: CalendarDays, testid: "nav-menu" },
   { name: "Recipe Vault", path: "/recipes", icon: UtensilsCrossed, testid: "nav-recipes" },
   { name: "Grocery List", path: "/grocery", icon: ShoppingCart, testid: "nav-grocery" },
   { name: "Chores & Service", path: "/chores", icon: CheckSquare, testid: "nav-chores" },
   { name: "AI Copilot", path: "/copilot", icon: Sparkles, testid: "nav-copilot" },
+  { name: "Settings", path: "/settings", icon: Settings2, testid: "nav-settings" },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -76,13 +76,22 @@ function SidebarInner({ onNavigate }: { onNavigate?: () => void }) {
         <NavLinks onNavigate={onNavigate} />
       </div>
       <div className="mt-6 flex flex-col gap-3">
-        <a
-          href="/cook"
-          data-testid="nav-cook-link"
-          className="flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#D0663C] to-[#E4B45A] px-4 py-2.5 text-sm font-semibold text-[#1A1008] transition-transform hover:scale-[1.02]"
-        >
-          <ExternalLink className="h-4 w-4" /> Open Cook View
-        </a>
+        <div className="grid grid-cols-2 gap-2">
+          <a
+            href="/cook"
+            data-testid="nav-cook-link"
+            className="flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#D0663C] to-[#E4B45A] px-3 py-2.5 text-xs font-semibold text-[#1A1008] transition-transform hover:scale-[1.02]"
+          >
+            <ExternalLink className="h-3.5 w-3.5" /> Cook
+          </a>
+          <a
+            href="/salad"
+            data-testid="nav-salad-link"
+            className="flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-[#1E4030] to-[#3E7A57] px-3 py-2.5 text-xs font-semibold text-[#F6F1E4] transition-transform hover:scale-[1.02]"
+          >
+            <ExternalLink className="h-3.5 w-3.5" /> Salad
+          </a>
+        </div>
         <div className="flex items-center justify-between rounded-xl bg-sidebar-accent/60 px-4 py-2.5">
           <span className="truncate text-sm font-medium" data-testid="member-badge">
             {me.data?.name ?? "…"}

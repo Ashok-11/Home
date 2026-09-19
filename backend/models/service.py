@@ -17,6 +17,7 @@ def _now() -> datetime:
 
 class ApplianceCreate(BaseModel):
     name: str = Field(min_length=1)
+    house_id: Optional[str] = None
     location: str = ""
     service_interval_months: int = Field(default=6, ge=1)
     last_serviced_on: Optional[str] = Field(default=None, pattern=r"^\d{4}-\d{2}-\d{2}$")
@@ -26,6 +27,7 @@ class ApplianceCreate(BaseModel):
 class Appliance(BaseModel):
     id: str = Field(default_factory=_uuid)
     name: str
+    house_id: Optional[str] = None
     location: str = ""
     service_interval_months: int = 6
     last_serviced_on: Optional[str] = None

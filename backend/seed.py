@@ -193,6 +193,98 @@ CHORES = [
 ]
 
 
+CATEGORIES = [
+    "Groceries", "Utilities", "Maid/Cook Salary", "Dining Out", "Home Maintenance",
+    "Personal", "Kids", "Healthcare", "Transport", "Misc",
+]
+
+AISLES = ["Vegetables & Greens", "Dairy", "Spices & Staples", "Household & Cleaning", "Other"]
+
+TIMINGS = [("Breakfast", 10), ("Lunch", 20), ("Evening Snacks", 30), ("Dinner", 40)]
+
+HOUSES = [
+    {"name": "Home (Primary)", "address": "", "is_default": True},
+    {"name": "Parents' House", "address": "", "is_default": False},
+]
+
+# which station prepares each seeded recipe, plus a photo for the cook
+RECIPE_META = {
+    "paneer-butter-masala": ("cook", "https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=800&q=80"),
+    "vegetable-biryani": ("cook", "https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=800&q=80"),
+    "dal-tadka": ("cook", "https://images.unsplash.com/photo-1626500155537-4d8b4bd1bdbd?auto=format&fit=crop&w=800&q=80"),
+    "aloo-paratha": ("cook", "https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=800&q=80"),
+    "chicken-curry": ("cook", "https://images.unsplash.com/photo-1604579905367-8e3d2e1b1b1f?auto=format&fit=crop&w=800&q=80"),
+    "rava-upma": ("cook", "https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=800&q=80"),
+}
+
+SALAD_RECIPES = [
+    {
+        "id": "kosambari-salad",
+        "name": "Kosambari (Moong Salad)",
+        "description": "Crunchy soaked moong dal salad with cucumber, coconut and lemon.",
+        "category": "Salad",
+        "base_servings": 2,
+        "prep_minutes": 15,
+        "cook_minutes": 0,
+        "station": "salad",
+        "image_url": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=800&q=80",
+        "ingredients": [
+            {"qty": 100, "unit": "g", "name": "Moong dal (soaked)"},
+            {"qty": 150, "unit": "g", "name": "Cucumber"},
+            {"qty": 30, "unit": "g", "name": "Fresh coconut"},
+            {"qty": 1, "unit": "piece", "name": "Lemon"},
+            {"qty": 2, "unit": "tbsp", "name": "Coriander leaves"},
+        ],
+        "steps": [
+            "Soak moong dal 2 hours, drain well.",
+            "Finely chop cucumber; grate the coconut.",
+            "Toss everything with lemon juice, salt and coriander.",
+            "Serve fresh and chilled.",
+        ],
+    },
+    {
+        "id": "sprouts-chaat",
+        "name": "Sprouts Chaat",
+        "description": "Protein-rich sprouts with onion, tomato and tangy chaat masala.",
+        "category": "Salad",
+        "base_servings": 2,
+        "prep_minutes": 12,
+        "cook_minutes": 0,
+        "station": "salad",
+        "image_url": "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?auto=format&fit=crop&w=800&q=80",
+        "ingredients": [
+            {"qty": 200, "unit": "g", "name": "Mixed sprouts"},
+            {"qty": 80, "unit": "g", "name": "Onion"},
+            {"qty": 80, "unit": "g", "name": "Tomato"},
+            {"qty": 1, "unit": "tsp", "name": "Chaat masala"},
+            {"qty": 1, "unit": "piece", "name": "Lemon"},
+        ],
+        "steps": [
+            "Steam the sprouts 5 minutes; cool.",
+            "Add chopped onion and tomato.",
+            "Sprinkle chaat masala, squeeze lemon, toss and serve.",
+        ],
+    },
+    {
+        "id": "fruit-bowl",
+        "name": "Seasonal Fruit Bowl",
+        "description": "Whatever is fresh that week, cut and lightly spiced.",
+        "category": "Salad",
+        "base_servings": 2,
+        "prep_minutes": 10,
+        "cook_minutes": 0,
+        "station": "salad",
+        "image_url": "https://images.unsplash.com/photo-1490474418585-ba9bad8fd0ea?auto=format&fit=crop&w=800&q=80",
+        "ingredients": [
+            {"qty": 400, "unit": "g", "name": "Seasonal fruits"},
+            {"qty": 1, "unit": "pinch", "name": "Black salt"},
+            {"qty": 1, "unit": "piece", "name": "Lemon"},
+        ],
+        "steps": ["Wash and cube the fruits.", "Sprinkle black salt and lemon.", "Serve immediately."],
+    },
+]
+
+
 async def seed() -> None:
     await ensure_indexes()
 
@@ -265,15 +357,72 @@ async def seed() -> None:
         await db.recipes.insert_many(docs)
         print(f"seeded {len(docs)} recipes")
 
+    # --- configurable lists ---
+    if await db.categories.count_documents({}) == 0:
+        now = datetime.now(timezone.utc)
+        await db.categories.insert_many(
+            [{"id": f"cat-{i}", "name": c, "created_at": now} for i, c in enumerate(CATEGORIES)]
+        )
+        print(f"seeded {len(CATEGORIES)} spending categories")
+
+    if await db.aisles.count_documents({}) == 0:
+        now = datetime.now(timezone.utc)
+        await db.aisles.insert_many(
+            [{"id": f"aisle-{i}", "name": a, "created_at": now} for i, a in enumerate(AISLES)]
+        )
+        print(f"seeded {len(AISLES)} grocery aisles")
+
+    if await db.timings.count_documents({}) == 0:
+        now = datetime.now(timezone.utc)
+        await db.timings.insert_many(
+            [{"id": f"timing-{i}", "name": n, "order": o, "created_at": now} for i, (n, o) in enumerate(TIMINGS)]
+        )
+        print(f"seeded {len(TIMINGS)} meal timings")
+
+    if await db.houses.count_documents({}) == 0:
+        now = datetime.now(timezone.utc)
+        await db.houses.insert_many(
+            [{**h, "id": f"house-{i}", "created_at": now} for i, h in enumerate(HOUSES)]
+        )
+        print(f"seeded {len(HOUSES)} houses (first is default)")
+
+    # attach appliances to the default house
+    default_house = await db.houses.find_one({"is_default": True})
+    if default_house:
+        await db.appliances.update_many(
+            {"$or": [{"house_id": None}, {"house_id": {"$exists": False}}]},
+            {"$set": {"house_id": default_house["id"]}},
+        )
+
+    # station + photo on every recipe
+    for rid, (station, image) in RECIPE_META.items():
+        await db.recipes.update_one({"id": rid}, {"$set": {"station": station, "image_url": image}})
+    for r in SALAD_RECIPES:
+        await db.recipes.update_one(
+            {"id": r["id"]},
+            {"$set": {**r, "created_by": "Manasa", "created_at": datetime.now(timezone.utc)}},
+            upsert=True,
+        )
+    await db.recipes.update_many(
+        {"station": {"$exists": False}}, {"$set": {"station": "cook", "image_url": ""}}
+    )
+
     month = today_iso()[:7]
 
     if await db.budgets.count_documents({}) == 0:
-        await db.budgets.insert_one({"id": f"budget-{month}", "month": month, "amount": 60000.0})
-        print("seeded budget")
+        await db.budgets.insert_many([
+            {"id": f"budget-{month}-ashok", "month": month, "member": "Ashok", "amount": 25000.0},
+            {"id": f"budget-{month}-manasa", "month": month, "member": "Manasa", "amount": 20000.0},
+            {"id": f"budget-{month}-common", "month": month, "member": "Common", "amount": 15000.0},
+        ])
+        print("seeded per-member budgets")
 
     if await db.allowances.count_documents({}) == 0:
-        await db.allowances.insert_one({"id": f"allowance-{month}", "month": month, "amount": 15000.0})
-        print("seeded personal fund (₹15,000)")
+        await db.allowances.insert_many([
+            {"id": f"allow-{month}-ashok", "month": month, "member": "Ashok", "amount": 15000.0},
+            {"id": f"allow-{month}-manasa", "month": month, "member": "Manasa", "amount": 15000.0},
+        ])
+        print("seeded personal funds (₹15,000 each)")
 
     if await db.incomes.count_documents({}) == 0:
         now = datetime.now(timezone.utc)
@@ -326,35 +475,41 @@ async def seed() -> None:
     if await db.menu_entries.count_documents({}) == 0:
         today = today_iso()
         tomorrow = (datetime.now(timezone.utc) + timedelta(days=1)).strftime("%Y-%m-%d")
-        entries = [
-            ("breakfast", "aloo-paratha", 2, today, "With fresh curd"),
-            ("lunch", "dal-tadka", 3, today, ""),
-            ("dinner", "paneer-butter-masala", 2, today, "Less spicy"),
-            ("breakfast", "rava-upma", 2, tomorrow, ""),
-            ("lunch", "vegetable-biryani", 4, tomorrow, "Raita on the side"),
-            ("dinner", "chicken-curry", 3, tomorrow, ""),
+        timings = {t["name"]: t for t in await db.timings.find().to_list(50)}
+        plan = [
+            ("Breakfast", "aloo-paratha", 2, today, "With fresh curd"),
+            ("Breakfast", "fruit-bowl", 2, today, "Cut fresh in the morning"),
+            ("Lunch", "dal-tadka", 3, today, ""),
+            ("Lunch", "kosambari-salad", 2, today, "Light on salt"),
+            ("Dinner", "paneer-butter-masala", 2, today, "Less spicy"),
+            ("Breakfast", "rava-upma", 2, tomorrow, ""),
+            ("Lunch", "vegetable-biryani", 4, tomorrow, "Raita on the side"),
+            ("Lunch", "sprouts-chaat", 2, tomorrow, ""),
+            ("Dinner", "chicken-curry", 3, tomorrow, ""),
         ]
         docs = []
         now = datetime.now(timezone.utc)
-        for i, (slot, recipe_id, servings, date, notes) in enumerate(entries):
+        for i, (timing_name, recipe_id, servings, date, notes) in enumerate(plan):
             recipe = await db.recipes.find_one({"id": recipe_id})
-            if not recipe:
+            timing = timings.get(timing_name)
+            if not recipe or not timing:
                 continue
-            docs.append(
-                {
-                    "id": f"menu-{i}-{date}",
-                    "date": date,
-                    "slot": slot,
-                    "recipe_id": recipe_id,
-                    "recipe_name": recipe["name"],
-                    "servings": servings,
-                    "notes": notes,
-                    "created_at": now + timedelta(minutes=i),
-                }
-            )
+            docs.append({
+                "id": f"menu-{i}-{date}",
+                "date": date,
+                "timing_id": timing["id"],
+                "timing_label": timing["name"],
+                "timing_order": timing.get("order", 0),
+                "station": recipe.get("station", "cook"),
+                "recipe_id": recipe_id,
+                "recipe_name": recipe["name"],
+                "servings": servings,
+                "notes": notes,
+                "created_at": now + timedelta(minutes=i),
+            })
         if docs:
             await db.menu_entries.insert_many(docs)
-            print(f"seeded {len(docs)} menu entries")
+            print(f"seeded {len(docs)} menu entries (cook + salad)")
 
     if await db.grocery_items.count_documents({}) == 0:
         now = datetime.now(timezone.utc)

@@ -7,7 +7,7 @@ export default function ScaledIngredients({
   servings,
   className = "",
 }: {
-  recipe: Recipe;
+  recipe: Pick<Recipe, "base_servings" | "ingredients">;
   servings: number;
   className?: string;
 }) {

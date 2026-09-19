@@ -36,6 +36,8 @@ const blankForm = {
   cook_minutes: "20",
   ingredients: [{ qty: "", unit: "g", name: "" }] as IngredientRow[],
   steps: [""],
+  image_url: "",
+  station: "cook",
 };
 
 export default function Recipes() {
@@ -70,6 +72,8 @@ export default function Recipes() {
       cook_minutes: String(r.cook_minutes),
       ingredients: r.ingredients.map((i) => ({ qty: String(i.qty), unit: i.unit, name: i.name })),
       steps: r.steps.length ? [...r.steps] : [""],
+      image_url: r.image_url ?? "",
+      station: r.station ?? "cook",
     });
     setSheetOpen(true);
   };
@@ -87,6 +91,8 @@ export default function Recipes() {
           .filter((i) => i.name && Number(i.qty) > 0)
           .map((i) => ({ qty: Number(i.qty), unit: i.unit, name: i.name })),
         steps: form.steps.map((s) => s.trim()).filter(Boolean),
+        image_url: form.image_url.trim(),
+        station: form.station,
       };
       if (editing) return apiPut<Recipe>(`/recipes/${editing.id}`, body);
       return apiPost<Recipe>("/recipes", body);
@@ -162,14 +168,18 @@ export default function Recipes() {
               setDetailServings(r.base_servings);
             }}
           >
+            {r.image_url && (
+              <img src={r.image_url} alt={r.name} className="mb-3 h-36 w-full rounded-xl object-cover" loading="lazy" data-testid="recipe-card-image" />
+            )}
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h3 className="font-heading text-lg font-semibold">{r.name}</h3>
                 <p className="mt-0.5 line-clamp-2 min-h-10 text-sm text-muted-foreground">{r.description || "—"}</p>
               </div>
-              <Badge variant="secondary" className="shrink-0">
-                {r.category}
-              </Badge>
+              <div className="flex shrink-0 flex-col items-end gap-1">
+                <Badge variant="secondary">{r.category}</Badge>
+                <Badge variant="outline" data-testid="recipe-card-station">{r.station === "salad" ? "Salad" : "Cook"}</Badge>
+              </div>
             </div>
             <div className="mt-3 flex items-center gap-4 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
@@ -221,6 +231,31 @@ export default function Recipes() {
                   onChange={(e) => setForm((f) => ({ ...f, cook_minutes: e.target.value }))}
                 />
               </div>
+            </div>
+            <div className="grid gap-1.5">
+              <Label htmlFor="recipe-image">Dish photo URL</Label>
+              <Input
+                id="recipe-image"
+                data-testid="recipe-image-input"
+                value={form.image_url}
+                onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))}
+                placeholder="https://…/dish.jpg"
+              />
+              {form.image_url && (
+                <img src={form.image_url} alt="preview" className="mt-1 h-28 w-full rounded-xl object-cover" data-testid="recipe-image-preview" />
+              )}
+            </div>
+            <div className="grid gap-1.5">
+              <Label>Station (who prepares it)</Label>
+              <select
+                data-testid="recipe-station-select"
+                value={form.station}
+                onChange={(e) => setForm((f) => ({ ...f, station: e.target.value }))}
+                className="h-9 rounded-md border border-input bg-card px-2 text-sm"
+              >
+                <option value="cook">Cook (kitchen)</option>
+                <option value="salad">Salad cook</option>
+              </select>
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor="recipe-desc">Description</Label>

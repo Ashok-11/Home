@@ -4,7 +4,8 @@ import { toast } from "sonner";
 import { ChevronLeft, ChevronRight, Pencil, Plus, Sparkles, Trash2, WandSparkles } from "lucide-react";
 import { apiDelete, apiGet, apiPost } from "@/lib/api";
 import { currentMonth, formatDate, formatINR, monthLabel, todayIso } from "@/lib/format";
-import { CATEGORIES, MEMBERS } from "@/lib/constants";
+import { MEMBERS } from "@/lib/constants";
+import { useCategories } from "@/lib/config";
 import type { Expense, ParsedExpense } from "@/lib/types";
 import { BackgroundBlobs, PageHeader } from "@/components/decor";
 import ExpenseDialog from "@/components/ExpenseDialog";
@@ -34,6 +35,7 @@ interface DraftRow extends ParsedExpense {
 
 export default function Expenses() {
   const qc = useQueryClient();
+  const categories = useCategories();
   const [month, setMonth] = useState(currentMonth());
   const [category, setCategory] = useState("all");
   const [member, setMember] = useState("all");
@@ -170,9 +172,9 @@ export default function Expenses() {
                       <SelectValue>{d.category}</SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c} value={c}>
-                          {c}
+                      {(categories.data ?? []).map((c) => (
+                        <SelectItem key={c.id} value={c.name}>
+                          {c.name}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -222,9 +224,9 @@ export default function Expenses() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All categories</SelectItem>
-            {CATEGORIES.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
+            {(categories.data ?? []).map((c) => (
+              <SelectItem key={c.id} value={c.name}>
+                {c.name}
               </SelectItem>
             ))}
           </SelectContent>

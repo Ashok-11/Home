@@ -65,23 +65,27 @@ class Income(BaseModel):
 class BudgetSet(BaseModel):
     month: str = Field(pattern=r"^\d{4}-\d{2}$")
     amount: float = Field(ge=0)
+    member: str = "Common"  # Ashok | Manasa | Common — a budget per person per month
 
 
 class Budget(BaseModel):
     id: str = Field(default_factory=_uuid)
     month: str
     amount: float
+    member: str = "Common"
 
 
 class AllowanceSet(BaseModel):
     month: str = Field(pattern=r"^\d{4}-\d{2}$")
     amount: float = Field(ge=0)
+    member: str = "Common"
 
 
 class Allowance(BaseModel):
     id: str = Field(default_factory=_uuid)
     month: str
     amount: float
+    member: str = "Common"
 
 
 # ---------- Summary / dashboard ----------
@@ -130,6 +134,9 @@ class DashboardData(BaseModel):
     scope: str  # month | fy | cal
     key: str
     label: str
+    view: str = "combined"  # personal | combined
+    budget_by_member: dict[str, float] = {}
+    income_by_source: List["IncomeSourceTotal"] = []
     income: IncomeBreakdown
     expense_total: float = 0.0
     budget: float = 0.0
@@ -138,3 +145,12 @@ class DashboardData(BaseModel):
     personal: PersonalFund
     cards: List[CardSpend] = []
     recent_expenses: List[Expense] = []
+
+
+class IncomeSourceTotal(BaseModel):
+    source: str
+    source_type: str
+    total: float
+
+
+DashboardData.model_rebuild()

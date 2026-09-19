@@ -28,6 +28,8 @@ class RecipeBase(BaseModel):
     cook_minutes: int = Field(default=0, ge=0)
     ingredients: List[Ingredient] = []
     steps: List[str] = []
+    image_url: str = ""          # photo of the finished dish for the cook
+    station: str = "cook"        # cook | salad — which helper prepares it
 
 
 class RecipeCreate(RecipeBase):

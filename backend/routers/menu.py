@@ -5,15 +5,13 @@ from pymongo import ASCENDING
 
 from lib.db import db
 from lib.session import require_user
-from models.menu import SLOTS, MenuEntry, MenuEntryCreate, MenuEntryUpdate
+from models.menu import MenuEntry, MenuEntryCreate, MenuEntryUpdate
 
 router = APIRouter(tags=["menu"])
 
-SLOT_RANK = {slot: i for i, slot in enumerate(SLOTS)}
-
 
 def _sort_key(doc: dict) -> tuple:
-    return (doc["date"], SLOT_RANK.get(doc["slot"], 99), doc.get("created_at"))
+    return (doc["date"], doc.get("timing_order", 99), doc.get("created_at"))
 
 
 @router.get("/menu", response_model=list[MenuEntry])
@@ -33,14 +31,18 @@ async def list_menu(start: str | None = None, end: str | None = None, _: dict = 
 
 @router.post("/menu", response_model=MenuEntry, status_code=201)
 async def create_menu_entry(body: MenuEntryCreate, _: dict = Depends(require_user)):
-    if body.slot not in SLOTS:
-        raise HTTPException(status_code=422, detail=f"slot must be one of {SLOTS}")
+    timing = await db.timings.find_one({"id": body.timing_id})
+    if not timing:
+        raise HTTPException(status_code=404, detail="Meal timing not found")
     recipe = await db.recipes.find_one({"id": body.recipe_id})
     if not recipe:
         raise HTTPException(status_code=404, detail="Recipe not found")
     doc = MenuEntry(
         date=body.date,
-        slot=body.slot,
+        timing_id=timing["id"],
+        timing_label=timing["name"],
+        timing_order=timing.get("order", 0),
+        station=recipe.get("station", "cook"),
         recipe_id=body.recipe_id,
         recipe_name=recipe["name"],
         servings=body.servings,
@@ -56,8 +58,12 @@ async def update_menu_entry(entry_id: str, body: MenuEntryUpdate, _: dict = Depe
     if not doc:
         raise HTTPException(status_code=404, detail="Menu entry not found")
     updates = {k: v for k, v in body.model_dump(exclude_none=True).items()}
-    if "slot" in updates and updates["slot"] not in SLOTS:
-        raise HTTPException(status_code=422, detail=f"slot must be one of {SLOTS}")
+    if "timing_id" in updates:
+        timing = await db.timings.find_one({"id": updates["timing_id"]})
+        if not timing:
+            raise HTTPException(status_code=404, detail="Meal timing not found")
+        updates["timing_label"] = timing["name"]
+        updates["timing_order"] = timing.get("order", 0)
     if updates:
         await db.menu_entries.update_one({"id": entry_id}, {"$set": updates})
         doc.update(updates)
