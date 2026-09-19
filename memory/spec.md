@@ -71,3 +71,9 @@ Tier-1 curl smoke + testing-subagent run (9/9 checks) green: both logins, negati
 auth, all three dashboard scopes, cards CRUD, appliance service logging, cooking-chore
 filter, allowance, PWA assets, public cook view, and the blank-screen regression
 (repeat reloads, zero SW registrations in dev).
+
+## Update — recipe photos, station-split planner, mobile
+- Recipe photos: attached from the phone in the Recipe sheet (file input with `capture`), compressed in-browser to a ~900px JPEG data URL (`src/lib/photo.ts`) and stored in `recipes.image_url`. A pasted URL still works.
+- `components/DishImage.tsx` renders every dish photo and falls back to a neutral "No photo" placeholder (never a random dish) when the value is empty or the URL fails.
+- Menu Planner has Cook / Salad station tabs; entries and the recipe picker are filtered by `station` (entry.station comes from the recipe).
+- Mobile: tighter page padding, smaller page titles, responsive 3-col form grids.

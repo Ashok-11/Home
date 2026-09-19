@@ -46,6 +46,7 @@ export default function MenuPlanner() {
   const SLOTS = (timings.data ?? []).map((t) => ({ value: t.id, label: t.name }));
   const [weekStart, setWeekStart] = useState(() => mondayOf(todayIso()));
   const [picker, setPicker] = useState<PickerState | null>(null);
+  const [station, setStation] = useState<"cook" | "salad">("cook");
   const [recipeId, setRecipeId] = useState("");
   const [servings, setServings] = useState("2");
   const [notes, setNotes] = useState("");
@@ -108,13 +109,15 @@ export default function MenuPlanner() {
 
   const openPicker = (date: string, timingId: string, entry: MenuEntry | null) => {
     setPicker({ date, timingId, entry });
-    setRecipeId(entry ? "" : (recipes.data?.[0]?.id ?? ""));
+    setRecipeId(entry ? "" : (stationRecipes[0]?.id ?? ""));
     setServings(String(entry?.servings ?? 2));
     setNotes(entry?.notes ?? "");
   };
 
   const entriesBy = (date: string, timingId: string) =>
-    (menu.data ?? []).filter((e) => e.date === date && e.timing_id === timingId);
+    (menu.data ?? []).filter((e) => e.date === date && e.timing_id === timingId && (e.station || "cook") === station);
+
+  const stationRecipes = (recipes.data ?? []).filter((r) => (r.station || "cook") === station);
 
   return (
     <div className="relative">
@@ -154,6 +157,24 @@ export default function MenuPlanner() {
           </>
         }
       />
+
+      <div className="mb-4 inline-flex rounded-full border border-border bg-card p-1" data-testid="menu-station-tabs">
+        {([
+          { id: "cook", label: "Cook station" },
+          { id: "salad", label: "Salad station" },
+        ] as const).map((s) => (
+          <button
+            key={s.id}
+            data-testid={`menu-station-tab-${s.id}`}
+            onClick={() => setStation(s.id)}
+            className={`rounded-full px-4 py-1.5 text-xs font-semibold transition-colors sm:text-sm ${
+              station === s.id ? "bg-[#1E4030] text-[#F6F1E4]" : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            {s.label}
+          </button>
+        ))}
+      </div>
 
       {recipes.data && recipes.data.length === 0 && (
         <p className="mb-4 rounded-xl border border-[#D0663C]/40 bg-[#FDF0EB] px-4 py-3 text-sm text-[#5C200C]">
@@ -226,7 +247,7 @@ export default function MenuPlanner() {
                     <SelectValue>{recipes.data?.find((r) => r.id === recipeId)?.name ?? "Choose a recipe"}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {(recipes.data ?? []).map((r) => (
+                    {stationRecipes.map((r) => (
                       <SelectItem key={r.id} value={r.id}>
                         {r.name}
                       </SelectItem>

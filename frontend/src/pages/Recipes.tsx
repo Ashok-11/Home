@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { Clock, Minus, Plus, Sparkles, Trash2, Users, WandSparkles } from "lucide-react";
+import { Camera, Clock, Minus, Plus, Sparkles, Trash2, Users, WandSparkles } from "lucide-react";
+import DishImage from "@/components/DishImage";
+import { fileToCompressedDataUrl } from "@/lib/photo";
 import { apiDelete, apiGet, apiPost, apiPut } from "@/lib/api";
 import type { Recipe, RecipeDraft } from "@/lib/types";
 import { UNITS } from "@/lib/constants";
@@ -47,6 +49,8 @@ export default function Recipes() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const [editing, setEditing] = useState<Recipe | null>(null);
   const [form, setForm] = useState(blankForm);
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
 
   const [detail, setDetail] = useState<Recipe | null>(null);
   const [detailServings, setDetailServings] = useState(2);
@@ -168,9 +172,12 @@ export default function Recipes() {
               setDetailServings(r.base_servings);
             }}
           >
-            {r.image_url && (
-              <img src={r.image_url} alt={r.name} className="mb-3 h-36 w-full rounded-xl object-cover" loading="lazy" data-testid="recipe-card-image" />
-            )}
+            <DishImage
+              src={r.image_url}
+              alt={r.name}
+              testid="recipe-card-image"
+              className="mb-3 h-36 w-full rounded-xl"
+            />
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h3 className="font-heading text-lg font-semibold">{r.name}</h3>
@@ -211,7 +218,7 @@ export default function Recipes() {
               <Label htmlFor="recipe-name">Name</Label>
               <Input id="recipe-name" data-testid="recipe-name-input" value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
             </div>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <div className="grid gap-1.5">
                 <Label htmlFor="recipe-category">Category</Label>
                 <Input id="recipe-category" data-testid="recipe-category-input" value={form.category} onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))} />
@@ -233,17 +240,60 @@ export default function Recipes() {
               </div>
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="recipe-image">Dish photo URL</Label>
-              <Input
-                id="recipe-image"
-                data-testid="recipe-image-input"
-                value={form.image_url}
-                onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))}
-                placeholder="https://…/dish.jpg"
+              <Label>Dish photo</Label>
+              <input
+                ref={fileRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                className="hidden"
+                data-testid="recipe-photo-file-input"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  try {
+                    setUploading(true);
+                    const url = await fileToCompressedDataUrl(file);
+                    setForm((f) => ({ ...f, image_url: url }));
+                    toast.success("Photo attached");
+                  } catch (err) {
+                    toast.error((err as Error).message);
+                  } finally {
+                    setUploading(false);
+                  }
+                }}
               />
-              {form.image_url && (
-                <img src={form.image_url} alt="preview" className="mt-1 h-28 w-full rounded-xl object-cover" data-testid="recipe-image-preview" />
-              )}
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  disabled={uploading}
+                  data-testid="recipe-photo-upload-button"
+                  onClick={() => fileRef.current?.click()}
+                >
+                  <Camera className="h-3.5 w-3.5" /> {uploading ? "Processing…" : "Take / choose photo"}
+                </Button>
+                {form.image_url && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    type="button"
+                    data-testid="recipe-photo-remove-button"
+                    onClick={() => setForm((f) => ({ ...f, image_url: "" }))}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Remove photo
+                  </Button>
+                )}
+              </div>
+              <Input
+                data-testid="recipe-image-input"
+                value={form.image_url.startsWith("data:") ? "" : form.image_url}
+                onChange={(e) => setForm((f) => ({ ...f, image_url: e.target.value }))}
+                placeholder="…or paste an image link"
+              />
+              <DishImage src={form.image_url} alt="preview" testid="recipe-image-preview" className="mt-1 h-28 w-full rounded-xl" />
             </div>
             <div className="grid gap-1.5">
               <Label>Station (who prepares it)</Label>

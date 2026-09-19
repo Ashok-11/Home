@@ -437,7 +437,7 @@ export default function Chores() {
               <Label htmlFor="chore-title">What needs doing?</Label>
               <Input id="chore-title" data-testid="chore-title-input" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Mop the balcony" />
             </div>
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               <div className="grid gap-1.5">
                 <Label>Area</Label>
                 <Select value={area} onValueChange={(v: string) => setArea(v)}>

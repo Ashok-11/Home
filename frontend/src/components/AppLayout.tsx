@@ -149,7 +149,7 @@ export default function AppLayout() {
       </header>
 
       <main className="relative min-h-svh lg:pl-64">
-        <div className="relative mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-10">
+        <div className="relative mx-auto max-w-7xl px-3 py-6 sm:px-6 sm:py-8 lg:px-10">
           <Outlet />
         </div>
       </main>

@@ -8,6 +8,7 @@ import { HERO_IMAGES } from "@/lib/constants";
 import type { CookEntry, CookMenu } from "@/lib/types";
 import { ManshokMark, Steam } from "@/components/decor";
 import ScaledIngredients from "@/components/ScaledIngredients";
+import DishImage from "@/components/DishImage";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
@@ -87,13 +88,12 @@ export default function StationView({ station: fixedStation }: { station?: strin
                       className="card-lift gold-edge overflow-hidden rounded-2xl bg-white text-left shadow-sm"
                     >
                       <div className="relative h-44 w-full bg-[#F1E9DA]">
-                        {entry.recipe?.image_url ? (
-                          <img src={entry.recipe.image_url} alt={entry.recipe.name} className="h-full w-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="flex h-full items-center justify-center">
-                            <UtensilsCrossed className="h-10 w-10 text-[#B8A98C]" />
-                          </div>
-                        )}
+                        <DishImage
+                          src={entry.recipe?.image_url}
+                          alt={entry.recipe?.name ?? "dish"}
+                          testid="station-dish-image"
+                          className="h-full w-full"
+                        />
                         <span className="absolute right-2 top-2 rounded-full bg-[#14261B]/85 px-3 py-1 text-xs font-bold text-[#E4B45A]" data-testid="station-dish-servings">
                           {entry.servings} servings
                         </span>
@@ -144,7 +144,7 @@ export default function StationView({ station: fixedStation }: { station?: strin
           {open?.recipe && (
             <div>
               {open.recipe.image_url && (
-                <img src={open.recipe.image_url} alt={open.recipe.name} className="-mx-6 -mt-6 mb-4 h-48 w-[calc(100%+3rem)] object-cover" />
+                <DishImage src={open.recipe.image_url} alt={open.recipe.name} testid="station-detail-image" className="-mx-6 -mt-6 mb-4 h-48 w-[calc(100%+3rem)]" />
               )}
               <div className="flex items-start justify-between gap-3">
                 <div>
