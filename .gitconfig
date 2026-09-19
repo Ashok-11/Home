@@ -1,0 +1,4 @@
+# Local git config for this repository
+[user]
+email = homeboard@example.com
+name = homeboard-dev

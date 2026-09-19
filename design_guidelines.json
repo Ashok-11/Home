@@ -1,0 +1,257 @@
+{
+  "theme": "warm_earthy_luxury",
+  "archetype": "ORGANIC & EARTHY (Trust, Warmth, Craft & High Graphics)",
+  "locale": {
+    "country": "India",
+    "currency_symbol": "₹",
+    "currency_code": "INR",
+    "number_formatting": "en-IN",
+    "date_format": "dd MMM yyyy"
+  },
+  "colors": {
+    "surfaces": [
+      {
+        "name": "page",
+        "kind": "solid",
+        "bg": "#FBF7EE",
+        "on_bg": "#1C241D",
+        "on_bg_muted": "#5F6B5C",
+        "roles": {
+          "link": "#245C3F",
+          "error": "#B93826",
+          "success": "#2E6B47",
+          "warning": "#C27A1E"
+        }
+      },
+      {
+        "name": "card_cream",
+        "kind": "solid",
+        "bg": "#FFFFFF",
+        "on_bg": "#1C241D",
+        "on_bg_muted": "#637060",
+        "roles": {
+          "border": "#E4DDD0",
+          "badge_bg": "#F2EBE0",
+          "badge_text": "#473A2B"
+        }
+      },
+      {
+        "name": "sidebar_forest",
+        "kind": "solid",
+        "bg": "#112217",
+        "on_bg": "#F5F0E6",
+        "on_bg_muted": "#9CB5A2",
+        "roles": {
+          "active_item_bg": "#1E3B29",
+          "active_item_text": "#E8F5E9",
+          "border": "#1E3626",
+          "accent_badge": "#D96B43"
+        }
+      },
+      {
+        "name": "panel_terracotta",
+        "kind": "solid",
+        "bg": "#C85A32",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#FBEAE3"
+      },
+      {
+        "name": "panel_olive",
+        "kind": "solid",
+        "bg": "#1E3B29",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#C2DBC7"
+      },
+      {
+        "name": "glass_overlay",
+        "kind": "glass",
+        "contrast_against": "#F3ECE0",
+        "guarantee": "backdrop-blur-xl bg-white/75 border border-white/60 shadow-[0_12px_40px_rgba(28,36,29,0.06)]",
+        "on_bg": "#1C241D",
+        "on_bg_muted": "#5F6B5C"
+      },
+      {
+        "name": "hero_cook_view",
+        "kind": "image",
+        "contrast_against": "#18221B",
+        "guarantee": "scrim: linear-gradient(to bottom, rgba(17,34,23,0.85), rgba(17,34,23,0.92))",
+        "on_bg": "#FBF7EE",
+        "on_bg_muted": "#A8C3AF",
+        "roles": {
+          "accent": "#E87C52",
+          "chip_bg": "rgba(255,255,255,0.12)",
+          "chip_text": "#FFFFFF"
+        }
+      },
+      {
+        "name": "hero_login",
+        "kind": "image",
+        "contrast_against": "#142018",
+        "guarantee": "scrim: linear-gradient(135deg, rgba(17,34,23,0.88), rgba(200,90,50,0.78))",
+        "on_bg": "#FFFFFF",
+        "on_bg_muted": "#F0EAE1"
+      }
+    ],
+    "accent": "#C85A32",
+    "on_accent": "#FFFFFF",
+    "palette_chart": [
+      "#245C3F",
+      "#C85A32",
+      "#D99B26",
+      "#3D7B80",
+      "#87537D",
+      "#758E4F"
+    ]
+  },
+  "typography": {
+    "font_headings": "Lora, serif",
+    "font_body": "DM Sans, sans-serif",
+    "font_mono": "JetBrains Mono, monospace",
+    "scale_px": {
+      "display": 56,
+      "h1": 40,
+      "h2": 30,
+      "h3": 22,
+      "h4": 18,
+      "body": 16,
+      "caption": 14
+    },
+    "tracking": {
+      "display": "-0.03em",
+      "headings": "-0.02em",
+      "body": "-0.01em",
+      "labels_caps": "0.15em",
+      "figures_mono": "-0.02em"
+    }
+  },
+  "entry_surfaces": {
+    "/": "split layout — rich metrics & smart natural-language expenses banner left, today's chef menu + chore highlights right",
+    "/login": "split branded luxury entrance — warm culinary hero & positioning left, glassmorphic auth form card right",
+    "/cook": "immersive high-graphics full-width kitchen dashboard with hero image banner, serving scaler bar, and large checkable recipe cards",
+    "/copilot": "conversational luxury AI assistant with floating organic mesh backdrop, quick suggestion chips, and live streaming receipts/meal planner"
+  },
+  "visual_enhancers": {
+    "high_graphics_rules": [
+      "Layered atmospheric backgrounds: subtle SVG organic blobs (terracotta #C85A32 at 6% opacity and deep forest #245C3F at 8% opacity) with CSS filter blur(64px) to give a luminous, painterly aura.",
+      "Noise/Grain texture: A lightweight repeatable SVG noise overlay at 2.5% opacity across the canvas to eliminate digital flatness.",
+      "Custom decorative botanical & kitchen SVG flourishes: Handcrafted delicate line-art culinary motifs (steam curves, bay leaves, chef knife, spice bowl) positioned strategically in card corners with low opacity (12-20%).",
+      "Gleam and Tracing Borders: Subtle 1px gold/cream inner-bevel highlight on cards: `border border-[#E4DDD0] shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_10px_30px_rgba(36,28,20,0.04)]`.",
+      "Depth & Stacking: Elevate cards on hover with `-translate-y-1` and shadow lift to give tactile card-deck feel."
+    ],
+    "chart_styling": {
+      "doughnut_category": "Custom Recharts Pie with inner radius 68%, outer radius 90%, rounded corner radius 6px, and custom center serif metric displaying Total Spent in INR (₹)",
+      "budget_bar_progress": "Layered pill bars with textured stripes or smooth dual-tone terracotta/forest gradients with % markers."
+    }
+  },
+  "media": {
+    "image_urls": {
+      "login_hero": {
+        "url": "https://images.unsplash.com/photo-1547573854-74d2a71d0826?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NjZ8MHwxfHNlYXJjaHwxfHxob21lJTIwbWVhbCUyMHRhYmxlJTIwZGluaW5nfGVufDB8fHx8MTc4OTgzMjkwMHww&ixlib=rb-4.1.0&q=85",
+        "description": "Warm artisan dining table with curated homestyle meals, ceramic plates, and natural light",
+        "category": "auth_hero"
+      },
+      "cook_view_banner": {
+        "url": "https://images.unsplash.com/photo-1766422526750-6099697a2dd5?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjAzMzN8MHwxfHNlYXJjaHwzfHx3YXJtJTIwa2l0Y2hlbiUyMGZvb2QlMjBjb29raW5nfGVufDB8fHx8MTc4OTgzMjkwMHww&ixlib=rb-4.1.0&q=85",
+        "description": "Fresh vegetables and aromatic ingredients cooking in a skillet on warm stovetop",
+        "category": "cook_portal_banner"
+      },
+      "recipe_vault_hero": {
+        "url": "https://images.unsplash.com/photo-1579150877125-53b49ce88315?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODh8MHwxfHNlYXJjaHwzfHxmcmVzaCUyMHZlZ2V0YWJsZXMlMjBzcGljZXMlMjBraXRjaGVufGVufDB8fHx8MTc4OTgzMjkwMHww&ixlib=rb-4.1.0&q=85",
+        "description": "Fresh vibrant culinary ingredients and herbs on wooden chopping board",
+        "category": "recipe_card_thumb"
+      },
+      "family_dining_thumb": {
+        "url": "https://images.unsplash.com/photo-1531856396526-a0c8d7bd628b?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NjZ8MHwxfHNlYXJjaHwzfHxob21lJTIwbWVhbCUyMHRhYmxlJTIwZGluaW5nfGVufDB8fHx8MTc4OTgzMjkwMHww&ixlib=rb-4.1.0&q=85",
+        "description": "Homestyle culinary celebration at family dining table",
+        "category": "meal_planner_hero"
+      }
+    }
+  },
+  "layouts_and_pages": {
+    "app_shell": {
+      "sidebar": "Dark forest green (#112217) background with warm sand text, delicate 1px emerald border, custom HomeBoard crest badge, navigation items with hover pill glow and active terracotta pill marker.",
+      "topbar": "Floating glassmorphic pill bar with Home status indicator, Quick AI Smart Expense trigger button, INR Balance overview chip, notification bell, and user avatar."
+    },
+    "pages": {
+      "Dashboard": {
+        "path": "/",
+        "structure": "Asymmetric Bento Grid (12-column). Top: 4 Hero Metric Cards (Total Income, Spent This Month, Budget Remaining, Today's Cook Menu status). Middle: Spend Breakdown Donut Chart (7 cols) + Today's Menu & Cook Instructions (5 cols). Bottom: Quick AI Expense natural language input bar + Recent transactions table + Chores checklist."
+      },
+      "Expenses": {
+        "path": "/expenses",
+        "structure": "High-graphics expense command center. Top: 'Magic Parse' natural language input box (e.g. 'Bought 2kg paneer and vegetables for ₹450 at market') that auto-extracts Category, Amount, Date & Tag. Middle: Filterable data table with category badges, receipt view modal, and inline editing. Right/Stats: Daily spending heat-map or cumulative curve."
+      },
+      "BudgetAndIncome": {
+        "path": "/budget",
+        "structure": "Interactive envelope-style budget visualizer. Category threshold gauges with dynamic color status (Green -> Ochre -> Terracotta alert). Income stream allocation simulator."
+      },
+      "MenuPlanner": {
+        "path": "/menu",
+        "structure": "7-Day Weekly Culinary Grid (Breakfast, Lunch, Snacks, Dinner). 'AI Auto-Fill Week' button generating balanced Indian & Continental home menus. Instant 'Send to Cook' sync button."
+      },
+      "RecipeVault": {
+        "path": "/recipes",
+        "structure": "Masonry card gallery of home recipes with prep time, spice level indicator, dietary tags (Veg, Non-Veg, Jain), serving scaler, and 'AI Recipe Idea from Pantry' modal."
+      },
+      "GroceryList": {
+        "path": "/grocery",
+        "structure": "Auto-aggregated list from the active weekly menu planner. Categorized by aisle (Vegetables & Herbs, Dairy, Spices & Pantry, Household). Checkbox strike-through with estimated INR cost."
+      },
+      "Chores": {
+        "path": "/chores",
+        "structure": "Household chore matrix organized by frequency (Daily, Weekly, Monthly) and assigned family member/staff with gamified completion streaks."
+      },
+      "AICopilot": {
+        "path": "/copilot",
+        "structure": "Dedicated Home AI Assistant. Natural language streaming chat: can answer 'How much did we spend on groceries last week?', 'Suggest high-protein lunch for Tuesday', or 'Log ₹1,200 for electricity bill'."
+      },
+      "CookPortal": {
+        "path": "/cook",
+        "structure": "Public simplified, distraction-free tablet/mobile optimized portal for the household cook. High-contrast large typography, today's meals by time (Morning, Afternoon, Evening), serving adjuster (e.g. 4 people -> 8 people with scaled ingredients), and step-by-step checklist with simple audio/visual confirmation."
+      },
+      "Login": {
+        "path": "/login",
+        "structure": "Split branded luxury entrance with ambient kitchen photography, warm value proposition, and glassmorphic authentication card."
+      }
+    }
+  },
+  "motion": {
+    "library": "motion/react",
+    "stagger_children": 0.08,
+    "spring_transition": {
+      "type": "spring",
+      "stiffness": 260,
+      "damping": 20
+    },
+    "micro_interactions": [
+      "Hover scale 1.02 on recipe cards and action pills",
+      "Active button press scale 0.97",
+      "Subtle progress bar filling animation on budget gauges",
+      "Smooth accordion slide for AI recipe step details"
+    ]
+  },
+  "accessibility": {
+    "wcag_level": "WCAG AA (APCA checked)",
+    "rules": [
+      "All normal text maintains at least 4.5:1 contrast against its designated surface token.",
+      "JetBrains Mono numbers have high visual distinction and strict INR formatting (e.g. ₹1,42,500.00).",
+      "Every interactive element, button, tab, and form input has an explicit kebab-case data-testid (e.g. data-testid='quick-expense-input', data-testid='cook-servings-increment').",
+      "All decorative SVG flourishes have aria-hidden='true'.",
+      "Forms use accessible Shadcn primitives with clear label association."
+    ]
+  },
+  "instructions_to_main_agent": [
+    "Retain the established earthy greens (#112217, #1E3B29, #245C3F), warm cream (#FBF7EE, #F5F0E6), and terracotta (#C85A32) identity, while applying the user's explicit directive for an 'Extremely high graphics UI'.",
+    "Install `@fontsource-variable/lora`, `@fontsource-variable/dm-sans`, and `@fontsource-variable/jetbrains-mono` in `frontend/src/index.css`.",
+    "Implement the full suite of pages: Dashboard, Expenses (with Natural Language AI parser), Budget & Income, Menu Planner (with AI week generator), Recipe Vault, Grocery List, Chores, AI Copilot, Login, and public Cook View at `/cook`.",
+    "Use INR (₹) formatting with the Indian numbering standard (e.g., ₹1,25,000) for all monetary metrics.",
+    "Deliver rich UI details: glowing glass cards, subtle background blurs, animated badges, interactive charts with custom earthy palettes, and seamless responsive design.",
+    "Ensure all interactive components and key metrics include clear `data-testid` attributes for automated testing."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": {
+    "anti_slop": "Never produce generic, flat SaaS templates. Layer backgrounds with ambient glowing gradients and delicate borders.",
+    "spacing": "Maintain generous 2-3x spacing (p-6, p-8, gap-6) to ensure the rich graphics feel elegant rather than cluttered.",
+    "typography": "Use Lora serif for all headings and widget titles to give high-end editorial culinary feel. JetBrains Mono for all numeric currency data. DM Sans for clean UI copy.",
+    "data_density": "Balance high graphics with high functional density. Tables must be crisp, forms must be rapid to use, and AI smart parsing must feel instantaneous."
+  }
+}
